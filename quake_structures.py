@@ -20,9 +20,9 @@ class Sta:
 
 
 class Magnitude(NamedTuple):
-    ML: float | None
-    MPSP: float | None
-    preferred: float | None
+    """Contain average values of magnitude: ML, MPSP"""
+    ML: float
+    MPSP: float
 
 
 @dataclass(slots=True)
@@ -55,8 +55,7 @@ class Quake:
             avg_ML = round(ML / n_ML, 1)
         if n_MPSP != 0:
             avg_MPSP = round(MPSP / n_MPSP, 1)
-        preferred = avg_ML if avg_ML else avg_MPSP
-        return Magnitude(avg_ML, avg_MPSP, preferred)
+        return Magnitude(avg_ML, avg_MPSP)
 
 
 class Catalog(NamedTuple):
@@ -66,13 +65,12 @@ class Catalog(NamedTuple):
     lon: str
     depth: str
     reg: str
-    mag: str
-    stations_name: str
     avg_mag_ML: str
     avg_mag_MPSP: str
+    stations_name: str
 
 
-StaString = str(Sta)
+StaStrings = '\n'.join(list(str(Sta)))
 
 
 class Bulletin(NamedTuple):
@@ -80,4 +78,4 @@ class Bulletin(NamedTuple):
     quake_header_describe: str
     quake_header: str
     station_header_describe: str
-    station_strings: list[StaString]
+    station_strings: StaStrings
