@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# New settings must insert only after existing settings, NOT BETWEEN!
 
 
 DB = {'host': '', 'port': '', 'database': '', 'user': '', 'password': ''}
@@ -8,3 +7,19 @@ FILES_FILTERS = {'Text': 'Text files (*.txt)',
                  'Excel': 'Excel files (*.xlsx)',
                  'NAS': 'NAS files (*.bltn)',
                  'Images': 'Images (*.png *.xpm *.jpg)'}
+
+QUAKE_HEADER_DESCRIBE = ['Origin time', 'Lat', 'Lon', 'Depth',
+                         'Nsta', 'Region']
+
+AMNT_COLUMN_SYMBOLS = {'quake_hdr': (26, 9, 9, 9, 6, 6, 0),
+
+                       'sta_hdr': (9, 9, 9, 9, 9, 26, 9, 9, 9, 0)}
+
+STATION_HEADER_DESCRIBE = ('Sta', 'Dist', 'Az', 'Ph', 'Entry', 'time', 'Amp',
+                           'T', 'Mag', 'MagType')
+
+CATALOG_HEADER = ('Date', 'Origin time', 'Lat', 'Lon', 'Depth', 'Region', 'ML',
+                  'MPSP', 'Stations')
+
+MONTHS = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
+          'August', 'September', 'October', 'November', 'December')

@@ -97,8 +97,8 @@ class ConnectionDialog(QDialog, Ui_Dialog):
                    ('password', self.password_line.text()))
 
         with Path('config.py').open('w', encoding='utf8') as config_file:
-            config_file.writelines(content_lst[:4])
+            config_file.writelines(content_lst[:3])
             config_file.write(f'DB = {dict(db_conf)}\n')
-            config_file.writelines(content_lst[5:])
+            config_file.writelines(content_lst[4:])
         self.close()
 
