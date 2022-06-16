@@ -70,7 +70,7 @@ class Catalog(NamedTuple):
     stations_name: str
 
 
-StaStrings = '\n'.join(list(str(Sta)))
+StationsString = str(Sta) + str(Sta) + ...
 
 
 class Bulletin(NamedTuple):
@@ -78,4 +78,4 @@ class Bulletin(NamedTuple):
     quake_header_describe: str
     quake_header: str
     station_header_describe: str
-    station_strings: StaStrings
+    stations_string: StationsString
