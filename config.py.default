@@ -5,8 +5,7 @@ DB = {'host': '', 'port': '', 'database': '', 'user': '', 'password': ''}
 
 FILES_FILTERS = {'Text': 'Text files (*.txt)',
                  'Excel': 'Excel files (*.xlsx)',
-                 'NAS': 'NAS files (*.bltn)',
-                 'Images': 'Images (*.png *.xpm *.jpg)'}
+                 'NAS': 'NAS files (*.bltn)'}
 
 QUAKE_HEADER_DESCRIBE = ['Origin time', 'Lat', 'Lon', 'Depth',
                          'Nsta', 'Region']
@@ -21,5 +20,10 @@ STATION_HEADER_DESCRIBE = ('Sta', 'Dist', 'Az', 'Ph', 'Entry', 'time', 'Amp',
 CATALOG_HEADER = ('Date', 'Origin time', 'Lat', 'Lon', 'Depth', 'Region', 'ML',
                   'MPSP', 'Stations')
 
+ArcGIS_HEADER = ('Date', 'Time', 'Lat', 'Lon', 'Magn', 'Type')
+
 MONTHS = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
           'August', 'September', 'October', 'November', 'December')
+
+MAGNITUDE_RANGES = {(0.0, 2.51): '1', (2.52, 3.51): '2',
+                    (3.52, 4.51): '3', (4.52, 11.0): '4'}
