@@ -387,8 +387,17 @@
      </property>
      <addaction name="actionConnection"/>
     </widget>
+    <widget class="QMenu" name="menu_Save_as">
+     <property name="title">
+      <string>&amp;Save as...</string>
+     </property>
+     <addaction name="actionBulletin"/>
+     <addaction name="actionCatalog"/>
+     <addaction name="action_NAS_bulletin"/>
+     <addaction name="action_ArcGIS"/>
+    </widget>
     <addaction name="separator"/>
-    <addaction name="action_Save_as"/>
+    <addaction name="menu_Save_as"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_Bulletin"/>
     <addaction name="separator"/>
@@ -427,6 +436,9 @@
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="icon">
@@ -449,21 +461,29 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="action_Save_as">
-   <property name="icon">
-    <iconset>
-     <normaloff>resources/file-save.png</normaloff>resources/file-save.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Save as...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
   <action name="actionConnection">
    <property name="text">
     <string>Connection</string>
+   </property>
+  </action>
+  <action name="actionBulletin">
+   <property name="text">
+    <string>&amp;Bulletin (*.txt)</string>
+   </property>
+  </action>
+  <action name="actionCatalog">
+   <property name="text">
+    <string>&amp;Catalog (*.xlsx)</string>
+   </property>
+  </action>
+  <action name="action_NAS_bulletin">
+   <property name="text">
+    <string>&amp;NAS bulletin (*.bltn)</string>
+   </property>
+  </action>
+  <action name="action_ArcGIS">
+   <property name="text">
+    <string>&amp;ArcGIS (*.txt)</string>
    </property>
   </action>
  </widget>
@@ -510,22 +530,6 @@
     <hint type="destinationlabel">
      <x>538</x>
      <y>371</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>save_as_button</sender>
-   <signal>clicked()</signal>
-   <receiver>action_Save_as</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>987</x>
-     <y>64</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
     </hint>
    </hints>
   </connection>
