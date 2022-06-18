@@ -42,20 +42,20 @@ class Quake:
         return stations_name
 
     def get_magnitude(self) -> Magnitude:
-        ML = n_ML = MPSP = n_MPSP = 0
-        avg_ML = avg_MPSP = None
+        ml = n_ml = mpsp = n_mpsp = 0
+        avg_ml = avg_mpsp = None
         for sta in self.stations:
             if sta.mag_ML:
-                ML += sta.mag_ML
-                n_ML += 1
+                ml += sta.mag_ML
+                n_ml += 1
             if sta.mag_MPSP:
-                MPSP += sta.mag_MPSP
-                n_MPSP += 1
-        if n_ML != 0:
-            avg_ML = round(ML / n_ML, 1)
-        if n_MPSP != 0:
-            avg_MPSP = round(MPSP / n_MPSP, 1)
-        return Magnitude(avg_ML, avg_MPSP)
+                mpsp += sta.mag_MPSP
+                n_mpsp += 1
+        if n_ml != 0:
+            avg_ml = round(ml / n_ml, 1)
+        if n_mpsp != 0:
+            avg_mpsp = round(mpsp / n_mpsp, 1)
+        return Magnitude(avg_ml, avg_mpsp)
 
 
 class Catalog(NamedTuple):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from pathlib import Path
-from typing import Sequence, Tuple
+from typing import Sequence
 
 import openpyxl
 from openpyxl.styles import Alignment
@@ -11,11 +11,11 @@ from quake_structures import Quake, Catalog, Bulletin
 
 
 def get_catalog(quake: Quake) -> Catalog:
-    origin_dt, lat, lon, avg_ML, avg_MPSP, depth = _format_common_attrs(quake)
+    origin_dt, lat, lon, avg_ml, avg_mpsp, depth = _format_common_attrs(quake)
     origin_d, origin_t = origin_dt.split()
     stations_name = ', '.join(quake.get_stations_name())
     return Catalog(origin_d, origin_t, lat, lon, depth, quake.reg,
-                   avg_ML, avg_MPSP, stations_name)
+                   avg_ml, avg_mpsp, stations_name)
 
 
 def _format_common_attrs(quake: Quake) -> tuple[str, str, str, str, str, str]:
@@ -23,10 +23,10 @@ def _format_common_attrs(quake: Quake) -> tuple[str, str, str, str, str, str]:
     lat = f'{quake.lat:.2f}' if quake.lat else '-'
     lon = f'{quake.lon:.2f}' if quake.lon else '-'
     mag = quake.get_magnitude()
-    avg_ML = f'{mag.ML:.1f}' if mag.ML else '-'
-    avg_MPSP = f'{mag.MPSP:.1f}' if mag.MPSP else '-'
+    avg_ml = f'{mag.ML:.1f}' if mag.ML else '-'
+    avg_mpsp = f'{mag.MPSP:.1f}' if mag.MPSP else '-'
     depth = f'{quake.depth:.2f}' if quake.depth else '-'
-    return origin_dt, lat, lon, avg_ML, avg_MPSP, depth
+    return origin_dt, lat, lon, avg_ml, avg_mpsp, depth
 
 
 def write_catalog(quakes: tuple[Quake], catalog_path: str = None,
@@ -70,8 +70,8 @@ def _get_quake_hdr_describe(quake: Quake) -> str:
 
 
 def _get_quake_hdr(quake: Quake) -> str:
-    origin_dt, lat, lon, avg_ML, avg_MPSP, depth = _format_common_attrs(quake)
-    mag = avg_ML if avg_ML != '-' else avg_MPSP
+    origin_dt, lat, lon, avg_ml, avg_mpsp, depth = _format_common_attrs(quake)
+    mag = avg_ml if avg_ml != '-' else avg_mpsp
     amnt_sta = str(len(quake.get_stations_name()))
     return _format_to_bul(
         columns_data=(origin_dt, lat, lon, depth, amnt_sta, mag, quake.reg),
@@ -127,8 +127,8 @@ def write_nas_bltn(quakes: tuple[Quake], path: str) -> None:
             file.write('\n'.join(nas_bltn))
 
 
-def write_arcgis(quakes: Quake, f_name: str) -> None:
-    f_name = Path.joinpath(f_name,'_ArcGis.txt')
+def write_arcgis(quakes: tuple[Quake], f_name: str) -> None:
+    f_name = Path.joinpath(f_name, '_ArcGis.txt')
     with Path(f_name).open('w', encoding='utf8') as file:
         file.write(' '.join(config.ArcGIS_HEADER) + '\n')
         for quake in quakes:
@@ -137,12 +137,12 @@ def write_arcgis(quakes: Quake, f_name: str) -> None:
 
 
 def _get_columns_arcgis(quake: Quake) -> tuple[str, str, str, str, str, str]:
-    origin_dt, lat, lon, avg_ML, avg_MPSP, _ = _format_common_attrs(quake)
-    mag = avg_ML if avg_ML != '-' else avg_MPSP
+    origin_dt, lat, lon, avg_ml, avg_mpsp, _ = _format_common_attrs(quake)
+    mag = avg_ml if avg_ml != '-' else avg_mpsp
     columns = origin_dt, lat, lon, '0.0', '1', '\n'
     if mag != '-':
-        for range in config.MAGNITUDE_RANGES:
-            if range[0] < float(mag) < range[1]:
+        for _range in config.MAGNITUDE_RANGES:
+            if _range[0] < float(mag) < _range[1]:
                 columns = origin_dt, lat, lon, mag,\
-                          config.MAGNITUDE_RANGES[range], '\n'
+                          config.MAGNITUDE_RANGES[_range], '\n'
     return columns
