@@ -70,7 +70,7 @@ class Catalog(NamedTuple):
     stations_name: str
 
 
-StationsString = str(Sta) + str(Sta) + ...
+StationsString = str
 
 
 class Bulletin(NamedTuple):

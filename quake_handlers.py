@@ -29,7 +29,7 @@ def _format_common_attrs(quake: Quake) -> tuple[str, str, str, str, str, str]:
     return origin_dt, lat, lon, avg_ml, avg_mpsp, depth
 
 
-def write_catalog(quakes: tuple[Quake], catalog_path: str = None,
+def write_catalog(quakes: Sequence[Quake], catalog_path: str = None,
                   amnt_processed: int = 0) -> None:
     if not Path(catalog_path).exists():
         raise FileExistsError(f'{catalog_path} does not exist!')
@@ -54,7 +54,7 @@ def get_bulletin(quake: Quake) -> Bulletin:
     quake_hdr_describe = _get_quake_hdr_describe(quake)
     quake_hdr = _get_quake_hdr(quake) + '\n'
     station_hdr_describe = \
-        _format_to_bul(config.STATION_HEADER_DESCRIBE,
+        _format_to_str(config.STATION_HEADER_DESCRIBE,
                        config.AMNT_COLUMN_SYMBOLS['sta_hdr'])
     station_strings = _get_stations_string(quake)
     return Bulletin(quake.id, quake_hdr_describe, quake_hdr,
@@ -65,7 +65,7 @@ def _get_quake_hdr_describe(quake: Quake) -> str:
     mag = quake.get_magnitude()
     mag_type = 'ML' if mag.ML else 'MPSP' if mag.MPSP else 'Mag'
     config.QUAKE_HEADER_DESCRIBE.insert(5, mag_type)
-    return _format_to_bul(config.QUAKE_HEADER_DESCRIBE,
+    return _format_to_str(config.QUAKE_HEADER_DESCRIBE,
                           config.AMNT_COLUMN_SYMBOLS['quake_hdr'])
 
 
@@ -73,7 +73,7 @@ def _get_quake_hdr(quake: Quake) -> str:
     origin_dt, lat, lon, avg_ml, avg_mpsp, depth = _format_common_attrs(quake)
     mag = avg_ml if avg_ml != '-' else avg_mpsp
     amnt_sta = str(len(quake.get_stations_name()))
-    return _format_to_bul(
+    return _format_to_str(
         columns_data=(origin_dt, lat, lon, depth, amnt_sta, mag, quake.reg),
         hdr_type_config=config.AMNT_COLUMN_SYMBOLS['quake_hdr'])
 
@@ -86,20 +86,23 @@ def _get_stations_string(quake: Quake) -> str:
         mag_type = 'ML' if sta.mag_ML else 'MPSP' if sta.mag_MPSP else '-'
         sta_data = (sta.name, sta.dist, sta.azimuth, sta.phase, sta.entry,
                     sta.phase_dt, sta.ampl, sta.period, mag, mag_type)
-        res += _format_to_bul(sta_data,
+        res += _format_to_str(sta_data,
                               config.AMNT_COLUMN_SYMBOLS['sta_hdr']) + '\n'
     return res + '\n'
 
 
-def _format_to_bul(columns_data: Sequence[str], hdr_type_config: tuple) -> str:
-    """Return formatted string accordingly layout of bulletin"""
+def _format_to_str(columns_data: Sequence, hdr_type_config: Sequence) -> str:
+    """Return formatted string accordingly layout of hdr_type_config"""
+    if len(columns_data) != len(hdr_type_config):
+        raise IndexError('_format_to_str(): len(columns_data) is'
+                         ' not equal len(hdr_type_config)')
     res = ''
     for i in range(len(hdr_type_config)):
         res += f'{columns_data[i]:<{hdr_type_config[i]}}'
     return res
 
 
-def write_bulletin(quakes: tuple[Quake], f_name: str) -> None:
+def write_bulletin(quakes: Sequence[Quake], f_name: str) -> None:
     f_name = f'{f_name}.txt'
     with Path(f_name).open('w', encoding='utf8') as file:
         for quake in quakes:
@@ -118,22 +121,13 @@ def _get_nas_bltn(quake: Quake) -> list[str]:
     return bltn_strings
 
 
-def write_nas_bltn(quakes: tuple[Quake], path: str) -> None:
+def write_nas_bltn(quakes: Sequence[Quake], path: str) -> None:
     for quake in quakes:
         nas_bltn = _get_nas_bltn(quake)
         f_name = datetime.strftime(quake.origin_dt, '%Y%m%d_%H%M%S')
         full_path = Path.joinpath(path, f_name, '.bltn')
         with Path(full_path).open('w', encoding='utf8') as file:
             file.write('\n'.join(nas_bltn))
-
-
-def write_arcgis(quakes: tuple[Quake], f_name: str) -> None:
-    f_name = Path.joinpath(f_name, '_ArcGis.txt')
-    with Path(f_name).open('w', encoding='utf8') as file:
-        file.write(' '.join(config.ArcGIS_HEADER) + '\n')
-        for quake in quakes:
-            columns = _get_columns_arcgis(quake)
-            file.write(' '.join(columns))
 
 
 def _get_columns_arcgis(quake: Quake) -> tuple[str, str, str, str, str, str]:
@@ -146,3 +140,12 @@ def _get_columns_arcgis(quake: Quake) -> tuple[str, str, str, str, str, str]:
                 columns = origin_dt, lat, lon, mag,\
                           config.MAGNITUDE_RANGES[_range], '\n'
     return columns
+
+
+def write_arcgis(quakes: Sequence[Quake], f_name: str) -> None:
+    f_name = Path.joinpath(f_name, '_ArcGis.txt')
+    with Path(f_name).open('w', encoding='utf8') as file:
+        file.write(' '.join(config.ArcGIS_HEADER) + '\n')
+        for quake in quakes:
+            columns = _get_columns_arcgis(quake)
+            file.write(' '.join(columns))
