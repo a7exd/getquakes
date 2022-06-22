@@ -502,14 +502,14 @@
  <resources/>
  <connections>
   <connection>
-   <sender>groupBox</sender>
+   <sender>select_all_button</sender>
    <signal>clicked()</signal>
    <receiver>tableWidget</receiver>
    <slot>selectAll()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>867</x>
-     <y>82</y>
+     <x>995</x>
+     <y>67</y>
     </hint>
     <hint type="destinationlabel">
      <x>820</x>
