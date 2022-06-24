@@ -33,7 +33,7 @@ class Quake:
     lon: float
     depth: float
     reg: str
-    stations: list[Sta]
+    stations: tuple[Sta]
 
     def get_stations_name(self) -> set[Sta.name]:
         stations_name = set()

@@ -14,8 +14,7 @@ def connect_decorator(func):
             with connect(**config.DB) as conn:
                 return func(*args, conn=conn)
         except Error as exc:
-            print(exc)  # TODO to log
-            raise ConnectDatabaseError
+            raise ConnectDatabaseError(exc.msg)
 
     return wrapper
 
@@ -24,9 +23,10 @@ def get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag: str) -> str:
     sta = '' if sta == 'ALL' else sta
     return f"SELECT" \
            f" o.EVENTID, FROM_UNIXTIME(o.ORIGINTIME), o.LAT, o.LON," \
-           f" o.`DEPTH`, o.COMMENTS, a.STA, a.DIST, a.AZIMUTH, a.IPHASE," \
-           f" CONCAT(a.IM_EM, a.FM), FROM_UNIXTIME(a.ITIME), a.AMPL, a.PER," \
-           f" a.ML, a.MPSP " \
+           f" o.`DEPTH`, SUBSTR(o.COMMENTS, 20), a.STA, ROUND(a.DIST, 3)," \
+           f" ROUND(a.AZIMUTH, 3), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
+           f" FROM_UNIXTIME(a.ITIME), ROUND(a.AMPL, 3), ROUND(a.PER, 2)," \
+           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1) " \
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
@@ -45,11 +45,9 @@ def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
         -> list[tuple]:
     """Returns data of quakes from DB"""
     sql = get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag)
-    print(sql)
     with conn.cursor() as cursor:
         cursor.execute(sql)
-        data = cursor.fetchall()
-    return data
+        return cursor.fetchall()
 
 
 def get_quakes(data_lst: Iterable[tuple]) -> tuple[Quake]:
@@ -60,7 +58,9 @@ def get_quakes(data_lst: Iterable[tuple]) -> tuple[Quake]:
         if data[0] != _id:
             if len(sta_lst) != 0:
                 quakes.append(
-                    Quake(_id, origin_dt, lat, lon, depth, reg, sta_lst))
+                    Quake(_id, origin_dt, lat, lon, depth, reg, tuple(sta_lst)))
+                sta_lst.clear()
             _id, origin_dt, lat, lon, depth, reg = data[:6]
         sta_lst.append(Sta(*data[6:]))
+    quakes.append(Quake(_id, origin_dt, lat, lon, depth, reg, tuple(sta_lst)))
     return tuple(quakes)
