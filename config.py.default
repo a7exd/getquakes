@@ -3,9 +3,10 @@
 
 DB = {'host': '', 'port': '', 'database': '', 'user': '', 'password': ''}
 
-FILES_FILTERS = {'Text': 'Text files (*.txt)',
-                 'Excel': 'Excel files (*.xlsx)',
-                 'NAS': 'NAS files (*.bltn)'}
+FFILES_FILTERS = {'Bulletin': 'Bulletin text files (*.txt)',
+                 'Catalog': 'Catalog excel files (*.xlsx)',
+                 'NAS': 'NAS bulletin files (*.bltn)',
+                 'ArcGIS': 'ArcGIS text files (*.GIS)'}
 
 QUAKE_HEADER_DESCRIBE = ['Origin time', 'Lat', 'Lon', 'Depth',
                          'Nsta', 'Region']
