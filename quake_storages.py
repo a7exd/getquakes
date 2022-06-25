@@ -98,7 +98,7 @@ class BulletinStorage:
             f.write(f'\nTotal: {amnt_quakes}')
 
     def _get_rows(self, quake: Quake) -> Iterable[str]:
-        quake_hdr_describe = self._get_quake_hdr_describe(quake)
+        quake_hdr_describe = self._get_quake_hdr_describe()
         quake_hdr = self._get_quake_hdr(quake) + '\n'
         sta_hdr_describe = \
             _format_to_str(config.STATION_HEADER_DESCRIBE,
@@ -107,7 +107,7 @@ class BulletinStorage:
         return (quake.id, quake_hdr_describe, quake_hdr,
                 sta_hdr_describe, sta_strings)
 
-    def _get_quake_hdr_describe(self, quake: Quake) -> str:
+    def _get_quake_hdr_describe(self) -> str:
         mag_type = 'ML' if self.avg_ml != '-' else \
             'MPSP' if self.avg_mpsp != '-' else 'Mag'
         columns_data = config.QUAKE_HEADER_DESCRIBE[:]
@@ -156,7 +156,7 @@ class NASBulletinStorage:
 
     def _get_rows(self, quake: Quake) -> None:
         self.bltn_strings.clear()
-        if (quake.lat is not None and quake.lon is not None)\
+        if (quake.lat is not None and quake.lon is not None) \
                 or len(quake.get_stations_name()) > 4:
             dt = datetime.strftime(quake.origin_dt, '%Y %m %d %H %M %S.%f')[:-3]
             lat = f'{quake.lat:.2f}' if quake.lat else '-'
@@ -167,7 +167,6 @@ class NASBulletinStorage:
                                              '%Y %m %d   %H %M %S.%f')[:-3]
                 self.bltn_strings.append(
                     f'{sta.name}    {sta.phase}={phase_dt}')
-
 
 
 class ArcGisStorage:
@@ -205,9 +204,9 @@ def _format_common_attrs(quake: Quake) -> tuple[str, ...]:
     mag = quake.get_magnitude()
     avg_ml = f'{mag.ML:.1f}' if mag.ML else '-'
     avg_mpsp = f'{mag.MPSP:.1f}' if mag.MPSP else '-'
-    preffered_mag = avg_ml if avg_ml != '-' else avg_mpsp
+    preferred_mag = avg_ml if avg_ml != '-' else avg_mpsp
     depth = f'{quake.depth:.2f}' if quake.depth else '-'
-    return origin_dt, lat, lon, preffered_mag, avg_ml, avg_mpsp, depth
+    return origin_dt, lat, lon, preferred_mag, avg_ml, avg_mpsp, depth
 
 
 def _format_to_str(columns_data: Sequence, hdr_type_config: Sequence) -> str:
