@@ -17,7 +17,12 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1167, 563)
+        MainWindow.resize(1347, 563)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
+        MainWindow.setSizePolicy(sizePolicy)
         self.actionOpen_Bulletin = QAction(MainWindow)
         self.actionOpen_Bulletin.setObjectName(u"actionOpen_Bulletin")
         icon = QIcon()
@@ -41,7 +46,7 @@ class Ui_MainWindow(object):
         self.actionCatalog = QAction(MainWindow)
         self.actionCatalog.setObjectName(u"actionCatalog")
         self.action_NAS_bulletin = QAction(MainWindow)
-        self.action_NAS_bulletin.setObjectName(u"action_NAS_bulletin_bltn")
+        self.action_NAS_bulletin.setObjectName(u"action_NAS_bulletin")
         self.action_ArcGIS = QAction(MainWindow)
         self.action_ArcGIS.setObjectName(u"action_ArcGIS")
         self.centralwidget = QWidget(MainWindow)
@@ -70,6 +75,7 @@ class Ui_MainWindow(object):
         self.from_dateTime = QDateTimeEdit(self.groupBox)
         self.from_dateTime.setObjectName(u"from_dateTime")
         self.from_dateTime.setMaximumSize(QSize(194, 16777215))
+        self.from_dateTime.setDate(QDate(2020, 2, 1))
         self.from_dateTime.setTime(QTime(0, 0, 0))
         self.from_dateTime.setMinimumDateTime(QDateTime(QDate(1752, 9, 14), QTime(0, 0, 0)))
         self.from_dateTime.setCalendarPopup(False)
@@ -79,6 +85,7 @@ class Ui_MainWindow(object):
         self.to_dateTime = QDateTimeEdit(self.groupBox)
         self.to_dateTime.setObjectName(u"to_dateTime")
         self.to_dateTime.setMaximumSize(QSize(194, 16777215))
+        self.to_dateTime.setDate(QDate(2020, 10, 20))
         self.to_dateTime.setTime(QTime(0, 0, 0))
         self.to_dateTime.setCalendarPopup(False)
 
@@ -104,7 +111,7 @@ class Ui_MainWindow(object):
         self.from_Mag.setObjectName(u"from_Mag")
         self.from_Mag.setFrame(True)
         self.from_Mag.setDecimals(1)
-        self.from_Mag.setStepType(QAbstractSpinBox.DefaultStepType)
+        self.from_Mag.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
         self.from_Mag.setValue(0.000000000000000)
 
         self.horizontalLayout_3.addWidget(self.from_Mag)
@@ -209,50 +216,58 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addWidget(self.groupBox)
 
         self.tableWidget = QTableWidget(self.centralwidget)
-        if (self.tableWidget.columnCount() < 16):
-            self.tableWidget.setColumnCount(16)
+        if (self.tableWidget.columnCount() < 11):
+            self.tableWidget.setColumnCount(11)
         __qtablewidgetitem = QTableWidgetItem()
+        __qtablewidgetitem.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
         __qtablewidgetitem1 = QTableWidgetItem()
+        __qtablewidgetitem1.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem1)
         __qtablewidgetitem2 = QTableWidgetItem()
+        __qtablewidgetitem2.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem2)
         __qtablewidgetitem3 = QTableWidgetItem()
+        __qtablewidgetitem3.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem3)
         __qtablewidgetitem4 = QTableWidgetItem()
+        __qtablewidgetitem4.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(4, __qtablewidgetitem4)
         __qtablewidgetitem5 = QTableWidgetItem()
+        __qtablewidgetitem5.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(5, __qtablewidgetitem5)
         __qtablewidgetitem6 = QTableWidgetItem()
+        __qtablewidgetitem6.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(6, __qtablewidgetitem6)
         __qtablewidgetitem7 = QTableWidgetItem()
+        __qtablewidgetitem7.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(7, __qtablewidgetitem7)
         __qtablewidgetitem8 = QTableWidgetItem()
+        __qtablewidgetitem8.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(8, __qtablewidgetitem8)
         __qtablewidgetitem9 = QTableWidgetItem()
+        __qtablewidgetitem9.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(9, __qtablewidgetitem9)
         __qtablewidgetitem10 = QTableWidgetItem()
+        __qtablewidgetitem10.setTextAlignment(Qt.AlignCenter);
         self.tableWidget.setHorizontalHeaderItem(10, __qtablewidgetitem10)
-        __qtablewidgetitem11 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(11, __qtablewidgetitem11)
-        __qtablewidgetitem12 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(12, __qtablewidgetitem12)
-        __qtablewidgetitem13 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(13, __qtablewidgetitem13)
-        __qtablewidgetitem14 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(14, __qtablewidgetitem14)
-        __qtablewidgetitem15 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(15, __qtablewidgetitem15)
         self.tableWidget.setObjectName(u"tableWidget")
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
-        self.tableWidget.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy1.setHorizontalStretch(5)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
+        self.tableWidget.setSizePolicy(sizePolicy1)
+        self.tableWidget.setMinimumSize(QSize(150, 0))
         self.tableWidget.setBaseSize(QSize(0, 0))
+        self.tableWidget.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
+        self.tableWidget.setSortingEnabled(True)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(True)
+        self.tableWidget.horizontalHeader().setMinimumSectionSize(50)
+        self.tableWidget.horizontalHeader().setDefaultSectionSize(120)
         self.tableWidget.horizontalHeader().setProperty("showSortIndicator", True)
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget.verticalHeader().setCascadingSectionResizes(False)
+        self.tableWidget.verticalHeader().setProperty("showSortIndicator", False)
 
         self.verticalLayout_5.addWidget(self.tableWidget)
 
@@ -262,7 +277,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1167, 30))
+        self.menubar.setGeometry(QRect(0, 0, 1347, 30))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuSettings = QMenu(self.menuFile)
@@ -327,7 +342,7 @@ class Ui_MainWindow(object):
         self.actionBulletin.setText(QCoreApplication.translate("MainWindow", u"&Bulletin (*.txt)", None))
         self.actionCatalog.setText(QCoreApplication.translate("MainWindow", u"&Catalog (*.xlsx)", None))
         self.action_NAS_bulletin.setText(QCoreApplication.translate("MainWindow", u"&NAS bulletin (*.bltn)", None))
-        self.action_ArcGIS.setText(QCoreApplication.translate("MainWindow", u"&ArcGIS (*.txt)", None))
+        self.action_ArcGIS.setText(QCoreApplication.translate("MainWindow", u"Arc&GIS (*.txt)", None))
         self.groupBox.setTitle("")
         self.label.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">Date time</p></body></html>", None))
         self.from_dateTime.setDisplayFormat(QCoreApplication.translate("MainWindow", u"yyyy-MM-dd HH:mm:ss", None))
@@ -350,27 +365,17 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem4 = self.tableWidget.horizontalHeaderItem(4)
         ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"Depth", None));
         ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"Region", None));
+        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"STA", None));
         ___qtablewidgetitem6 = self.tableWidget.horizontalHeaderItem(6)
-        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"STA", None));
+        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"Ph", None));
         ___qtablewidgetitem7 = self.tableWidget.horizontalHeaderItem(7)
-        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"Dist", None));
+        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"time", None));
         ___qtablewidgetitem8 = self.tableWidget.horizontalHeaderItem(8)
-        ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", u"Az", None));
+        ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", u"ML", None));
         ___qtablewidgetitem9 = self.tableWidget.horizontalHeaderItem(9)
-        ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"Ph", None));
+        ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"MPSP", None));
         ___qtablewidgetitem10 = self.tableWidget.horizontalHeaderItem(10)
-        ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", u"Entry", None));
-        ___qtablewidgetitem11 = self.tableWidget.horizontalHeaderItem(11)
-        ___qtablewidgetitem11.setText(QCoreApplication.translate("MainWindow", u"time", None));
-        ___qtablewidgetitem12 = self.tableWidget.horizontalHeaderItem(12)
-        ___qtablewidgetitem12.setText(QCoreApplication.translate("MainWindow", u"Amp", None));
-        ___qtablewidgetitem13 = self.tableWidget.horizontalHeaderItem(13)
-        ___qtablewidgetitem13.setText(QCoreApplication.translate("MainWindow", u"T", None));
-        ___qtablewidgetitem14 = self.tableWidget.horizontalHeaderItem(14)
-        ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"ML", None));
-        ___qtablewidgetitem15 = self.tableWidget.horizontalHeaderItem(15)
-        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"MPSP", None));
+        ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", u"Region", None));
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuSettings.setTitle(QCoreApplication.translate("MainWindow", u"Settings", None))
         self.menu_Save_as.setTitle(QCoreApplication.translate("MainWindow", u"&Save as...", None))
