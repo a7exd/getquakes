@@ -3,7 +3,7 @@
 
 DB = {'host': '', 'port': '', 'database': '', 'user': '', 'password': ''}
 
-FFILES_FILTERS = {'Bulletin': 'Bulletin text files (*.txt)',
+FILES_FILTERS = {'Bulletin': 'Bulletin text files (*.txt)',
                  'Catalog': 'Catalog excel files (*.xlsx)',
                  'NAS': 'NAS bulletin files (*.bltn)',
                  'ArcGIS': 'ArcGIS text files (*.GIS)'}
@@ -28,3 +28,12 @@ MONTHS = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
 
 MAGNITUDE_RANGES = {(0.0, 2.51): '1', (2.52, 3.51): '2',
                     (3.52, 4.51): '3', (4.52, 11.0): '4'}
+
+# All params of quake we can get from the db.
+ALL_PARAMS = ('_id', 'origin_dt', 'lat', 'lon', 'depth', 'reg', 'sta',
+              'dist', 'az', 'phase', 'entry', 'phase_dt', 'ampl', 'per',
+              'ml', 'mpsp')
+
+# Params of quake that will be displayed in the table of GUI
+GUI_TABLE_PARAMS = ('_id', 'origin_dt', 'lat', 'lon', 'depth', 'sta', 'phase',
+                    'phase_dt', 'ml', 'mpsp', 'reg')
