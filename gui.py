@@ -5,7 +5,8 @@ from typing import Generator
 from PySide6.QtWidgets import (QDialog, QMainWindow, QMessageBox,
                                QFileDialog, QTableWidgetItem)
 
-from exceptions import NoSelectedQuakesError, ConnectDatabaseError
+from exceptions import NoSelectedQuakesError, ConnectDatabaseError, \
+    FormatToStrError
 from quake_storages import save_quakes,  storages
 from quake_structures import Quake
 from ui.main_window_ui import Ui_MainWindow
@@ -24,6 +25,44 @@ class Window(QMainWindow, Ui_MainWindow):
         self.file_filter = ';;'.join(config.FILES_FILTERS.values())
         self.raw_quakes_data = None
 
+    def search_quakes(self) -> None:
+        try:
+            self.raw_quakes_data = get_data(self._get_query_params())
+            self._set_data_into_table()
+        except ConnectDatabaseError as exc:
+            print(exc.args[0])  # TODO print into log
+            self._show_error_dialog(message=f'{exc.args[0]}\n\n'
+                                            f'Check connection settings '
+                                            f'(File->Settings->Connection) '
+                                            f'and try again!')
+
+    def get_selected_quakes(self) -> tuple[Quake]:
+        """Obtain tuple of Quake() according to selected quakes
+        from the table of GUI"""
+        selected_data = self._get_selected_data()
+        return get_quakes(selected_data)
+
+    def save_file(self) -> None:
+        """Save function depending on ext of file."""
+        dialog = QFileDialog(self)
+        file = dialog.getSaveFileName(dir='untitled.txt',
+                                      filter=self.file_filter)[0]
+        file = Path(file)
+        ext = file.suffix
+        try:
+            quakes = self.get_selected_quakes()
+            save_quakes(quakes, storages[ext](file))
+        except (NoSelectedQuakesError, FormatToStrError) as exc:
+            self._show_error_dialog(message=f'Program cannot save the data.\n\n'
+                                            f'{exc.args[0]}')
+                # TODO print into log
+
+    def _show_error_dialog(self, message):
+        title = 'Something went wrong'
+        QMessageBox.critical(self, title, message,
+                             buttons=QMessageBox.Ok,
+                             defaultButton=QMessageBox.Ok)
+
     def _connect_signals_slots(self) -> None:
         self.save_as_button.clicked.connect(self.save_file)
         self.actionBulletin.triggered.connect(self.save_file)
@@ -37,23 +76,6 @@ class Window(QMainWindow, Ui_MainWindow):
     def _show_connection_dialog(self) -> None:
         conn_dialog = ConnectionDialog(self)
         conn_dialog.exec()
-
-    def get_selected_quakes(self) -> tuple[Quake]:
-        """Obtain tuple of Quake() according to selected quakes
-        from the table of GUI"""
-        try:
-            selected_data = self._get_selected_data()
-            return get_quakes(selected_data)
-        except NoSelectedQuakesError:
-            print('Nothing was selected!')
-            # TODO print into log, show DialogWindow
-
-    def search_quakes(self) -> None:
-        try:
-            self.raw_quakes_data = get_data(self._get_query_params())
-            self._set_data_into_table()
-        except ConnectDatabaseError as exc:
-            print(exc.args[0])  # TODO print into log, show DialogWindow
 
     def _set_data_into_table(self) -> None:
         self.tableWidget.setRowCount(0)
@@ -75,8 +97,10 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def _get_selected_quakes_id(self) -> list[str]:
         selected_items_amnt = len(self.tableWidget.selectedItems())
-        if selected_items_amnt == 0:
-            raise NoSelectedQuakesError
+        if selected_items_amnt == 0 or \
+                selected_items_amnt % self.tableWidget.columnCount() != 0:
+            raise NoSelectedQuakesError('Nothing is selected! At least one row'
+                                        ' from the table must be selected!')
         return [self.tableWidget.selectedItems()[i].text()
                 for i in range(selected_items_amnt)
                 if i % self.tableWidget.columnCount() == 0]
@@ -89,16 +113,6 @@ class Window(QMainWindow, Ui_MainWindow):
         from_mag = f'{self.from_Mag.value()}'
         to_mag = f'{self.to_Mag.value()}'
         return from_dt, to_dt, comment, sta, from_mag, to_mag
-
-    def save_file(self) -> None:
-        """Save function depending on ext of file."""
-        dialog = QFileDialog(self)
-        file = dialog.getSaveFileName(dir='untitled.txt',
-                                      filter=self.file_filter)[0]
-        file = Path(file)
-        ext = file.suffix
-        quakes = self.get_selected_quakes()
-        save_quakes(quakes, storages[ext](file))
 
     def about(self) -> None:
         QMessageBox.about(
