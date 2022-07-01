@@ -26,7 +26,7 @@ def save_quakes(quakes: Sequence[Quake], storage: QuakesStorage) -> None:
 
 
 class CatalogStorage:
-    """Store some info of quakes in Excel file"""
+    """Store some quakes info as a catalog in an Excel file"""
 
     def __init__(self, file: Path):
         self._file = file
@@ -74,7 +74,7 @@ class CatalogStorage:
 
 
 class BulletinStorage:
-    """Store some info of quakes in plain text file"""
+    """Store some quakes info as a bulletin in a plain text file"""
 
     def __init__(self, file: Path):
         self._file = file
@@ -138,8 +138,8 @@ class BulletinStorage:
 
 
 class NASBulletinStorage:
-    """Store some info of each quake in its own plain text file
-    with ext (*.bltn)"""
+    """Store some info of each quake as a bulletin for NAS program
+    in a separate plain text file with ext (*.bltn)"""
 
     def __init__(self, path: Path):
         self._path = path.joinpath(*path.parts[:-1])
@@ -170,7 +170,7 @@ class NASBulletinStorage:
 
 
 class ArcGisStorage:
-    """Store some info of quakes in plain text file
+    """Store some quakes info in a plain text file
     for further processing in ArcGis program"""
 
     def __init__(self, file: Path):

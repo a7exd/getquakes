@@ -15,6 +15,7 @@ from quakes_from_db import get_data, get_quakes
 
 
 class Window(QMainWindow, Ui_MainWindow):
+    """Main window of application"""
 
     def __init__(self, parent=None):
         super().__init__(parent)

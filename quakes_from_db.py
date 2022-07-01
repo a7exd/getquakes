@@ -20,7 +20,7 @@ def connect_decorator(func):
 
 
 def get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag: str) -> str:
-    sta = '' if sta == 'ALL' else sta
+    sta = '' if sta.lower() == 'all' else sta
     return f"SELECT" \
            f" o.EVENTID, FROM_UNIXTIME(o.ORIGINTIME), o.LAT, o.LON," \
            f" o.`DEPTH`, SUBSTR(o.COMMENTS, 20), a.STA, ROUND(a.DIST, 3)," \
@@ -41,8 +41,7 @@ def get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag: str) -> str:
 
 @connect_decorator
 def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
-             conn: MySQLConnectionAbstract)\
-        -> list[tuple]:
+             conn: MySQLConnectionAbstract) -> list[tuple]:
     """Returns data of quakes from DB"""
     sql = get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag)
     with conn.cursor() as cursor:
@@ -51,6 +50,7 @@ def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
 
 
 def get_quakes(data_lst: Iterable[tuple]) -> tuple[Quake]:
+    """Return tuple of Quake data structures from db records"""
     quakes = []
     _id = origin_dt = lat = lon = depth = reg = ''
     sta_lst = []
