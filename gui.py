@@ -29,14 +29,20 @@ class Window(QMainWindow, Ui_MainWindow):
         self._connect_signals_slots()
         self.file_filter = ';;'.join(config.FILES_FILTERS.values())
         self.raw_quakes_data = None
+        self.statusBar().showMessage('Ready')
 
     def search_quakes(self) -> None:
+        self.progressBar.setValue(5)
         try:
             log.info(f'Start search for records. '
                      f'DB connection config: {config.DB}.')
             self.raw_quakes_data = get_data(self._get_query_params())
             self._set_data_into_table()
+            self.statusBar().showMessage(f'Searched records: '
+                                         f'{self.tableWidget.rowCount()}')
+            self.progressBar.setValue(100)
         except ConnectDatabaseError as exc:
+            self.statusBar().showMessage('Error: cannot connect to Database!')
             log.exception(exc)
             self._show_error_dialog(message=f'{exc.args[0]}\n\n'
                                             f'Check connection settings '
@@ -51,6 +57,7 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def save_file(self) -> None:
         """Save function depending on ext of file."""
+        self.progressBar.setValue(10)
         dialog = QFileDialog(self)
         file = dialog.getSaveFileName(dir='untitled.txt',
                                       filter=self.file_filter)[0]
@@ -61,10 +68,14 @@ class Window(QMainWindow, Ui_MainWindow):
             quakes = self.get_selected_quakes()
             log.info(f'{len(quakes)} quakes are ready to save into the file')
             save_quakes(quakes, storages[ext](file))
+            self.statusBar().showMessage('Writing into the file '
+                                         'completed successfully.')
             log.info(f'Writing into the file completed successfully.')
+            self.progressBar.setValue(100)
         except (NoSelectedQuakesError, FormatToStrError) as exc:
+            self.statusBar().showMessage('Error: cannot save the data!')
             log.exception(exc)
-            self._show_error_dialog(message=f'Program cannot save the data.\n'
+            self._show_error_dialog(message=f'Cannot save the data.\n'
                                             f'\n{exc.args[0]}')
 
     def _show_error_dialog(self, message):
