@@ -3,6 +3,39 @@
 
 DB = {'host': '', 'port': '', 'database': '', 'user': '', 'password': ''}
 
+LOG_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'default_formatter': {
+            'format': '[%(asctime)s: %(module)s - %(levelname)s] %(message)s'
+        }
+    },
+
+    'handlers': {
+        'stream_handler': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default_formatter',
+        },
+        'file_handler': {
+            'class': 'logging.FileHandler',
+            'formatter': 'default_formatter',
+            'mode': 'w',
+            'encoding': 'utf8',
+            'filename': 'getquakes.log'
+        }
+    },
+
+    'loggers': {
+        'gui_logger': {
+            'handlers': ['file_handler'],
+            'level': 'INFO',
+            'propagate': True
+        }
+    }
+}
+
 FILES_FILTERS = {'Bulletin': 'Bulletin text files (*.txt)',
                  'Catalog': 'Catalog excel files (*.xlsx)',
                  'NAS': 'NAS bulletin files (*.bltn)',
