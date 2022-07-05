@@ -59,7 +59,7 @@ class Window(QMainWindow, Ui_MainWindow):
         ext = file.suffix
         try:
             quakes = self.get_selected_quakes()
-            log.info(f'{len(quakes)} quakes are ready to save in a storage')
+            log.info(f'{len(quakes)} quakes are ready to save into the file')
             save_quakes(quakes, storages[ext](file))
             log.info(f'Writing into the file completed successfully.')
         except (NoSelectedQuakesError, FormatToStrError) as exc:
