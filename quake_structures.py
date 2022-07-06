@@ -35,7 +35,7 @@ class Quake:
     reg: str
     stations: Tuple[Sta]
 
-    def get_stations_name(self) -> Set[Sta.name]:
+    def get_stations_name(self) -> Set[str]:
         stations_name = set()
         for sta in self.stations:
             stations_name.add(sta.name)
