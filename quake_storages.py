@@ -2,7 +2,7 @@
 import string
 from datetime import datetime
 from pathlib import Path
-from typing import Protocol, Sequence, Iterable
+from typing import Protocol, Sequence, Iterable, Tuple
 
 import openpyxl
 from openpyxl.styles import Alignment
@@ -197,7 +197,7 @@ class ArcGisStorage:
         return columns
 
 
-def _format_common_attrs(quake: Quake) -> tuple[str, ...]:
+def _format_common_attrs(quake: Quake) -> Tuple[str, ...]:
     origin_dt = datetime.strftime(quake.origin_dt, '%d.%m.%Y %H:%M:%S.%f')[:-3]
     lat = f'{quake.lat:.2f}' if quake.lat else '-'
     lon = f'{quake.lon:.2f}' if quake.lon else '-'

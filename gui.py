@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Tuple, List
 
 from PySide6.QtWidgets import (QDialog, QMainWindow, QMessageBox,
                                QFileDialog, QTableWidgetItem)
@@ -49,7 +49,7 @@ class Window(QMainWindow, Ui_MainWindow):
                                             f'(File->Settings->Connection) '
                                             f'and try again!')
 
-    def get_selected_quakes(self) -> tuple[Quake]:
+    def get_selected_quakes(self) -> Tuple[Quake]:
         """Obtain tuple of Quake() according to selected quakes
         from the table of GUI"""
         selected_data = self._get_selected_data()
@@ -78,7 +78,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self._show_error_dialog(message=f'Cannot save the data.\n'
                                             f'\n{exc.args[0]}')
 
-    def _show_error_dialog(self, message):
+    def _show_error_dialog(self, message) -> None:
         title = 'Something went wrong'
         QMessageBox.critical(self, title, message,
                              buttons=QMessageBox.Ok,
@@ -116,7 +116,7 @@ class Window(QMainWindow, Ui_MainWindow):
         return (data for data in self.raw_quakes_data
                 for _id in selected_id if data[0] == _id)
 
-    def _get_selected_quakes_id(self) -> list[str]:
+    def _get_selected_quakes_id(self) -> List[str]:
         selected_items_amnt = len(self.tableWidget.selectedItems())
         log.info(f'selected items amount: {selected_items_amnt}')
         col_count = self.tableWidget.columnCount()
@@ -127,7 +127,7 @@ class Window(QMainWindow, Ui_MainWindow):
         return [self.tableWidget.selectedItems()[i].text()
                 for i in range(selected_items_amnt) if i % col_count == 0]
 
-    def _get_query_params(self) -> tuple[str, ...]:
+    def _get_query_params(self) -> Tuple[str, ...]:
         from_dt = self.from_dateTime.text()
         to_dt = self.to_dateTime.text()
         comment = self.comment_line.text()

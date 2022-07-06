@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Iterable
+from typing import Iterable, Tuple, List
 from mysql.connector import connect, Error
 from mysql.connector.abstracts import MySQLConnectionAbstract
 import config
@@ -41,7 +41,7 @@ def get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag: str) -> str:
 
 @connect_decorator
 def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
-             conn: MySQLConnectionAbstract) -> list[tuple]:
+             conn: MySQLConnectionAbstract) -> List[tuple]:
     """Returns data of quakes from DB"""
     sql = get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag)
     with conn.cursor() as cursor:
@@ -49,7 +49,7 @@ def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
         return cursor.fetchall()
 
 
-def get_quakes(data_lst: Iterable[tuple]) -> tuple[Quake]:
+def get_quakes(data_lst: Iterable[tuple]) -> Tuple[Quake]:
     """Return tuple of Quake data structures from db records"""
     quakes = []
     _id = origin_dt = lat = lon = depth = reg = ''

@@ -2,7 +2,7 @@
 import decimal
 from dataclasses import dataclass
 from datetime import datetime
-from typing import NamedTuple
+from typing import NamedTuple, Tuple, Set
 
 
 @dataclass(slots=True)
@@ -33,9 +33,9 @@ class Quake:
     lon: float
     depth: float
     reg: str
-    stations: tuple[Sta]
+    stations: Tuple[Sta]
 
-    def get_stations_name(self) -> set[Sta.name]:
+    def get_stations_name(self) -> Set[Sta.name]:
         stations_name = set()
         for sta in self.stations:
             stations_name.add(sta.name)
