@@ -59,8 +59,11 @@ class Window(QMainWindow, Ui_MainWindow):
         """Save function depending on ext of file."""
         self.progressBar.setValue(10)
         dialog = QFileDialog(self)
-        file = dialog.getSaveFileName(dir='untitled.txt',
-                                      filter=self.file_filter)[0]
+        if not (file := dialog.getSaveFileName(dir='untitled.txt',
+                                               filter=self.file_filter)[0]):
+            return self._show_error_dialog('File is not selected! '
+                                           'Select a file and try again, '
+                                           'please.')
         file = Path(file)
         log.info(f'file to save the quakes: {file}')
         ext = file.suffix
@@ -72,11 +75,13 @@ class Window(QMainWindow, Ui_MainWindow):
                                          'completed successfully.')
             log.info(f'Writing into the file completed successfully.')
             self.progressBar.setValue(100)
-        except (NoSelectedQuakesError, FormatToStrError) as exc:
+        except (NoSelectedQuakesError, FormatToStrError,
+                PermissionError) as exc:
             self.statusBar().showMessage('Error: cannot save the data!')
             log.exception(exc)
-            self._show_error_dialog(message=f'Cannot save the data.\n'
-                                            f'\n{exc.args[0]}')
+            self._show_error_dialog(message=f'Cannot save the data '
+                                            f'into the file "{file}"!\n'
+                                            f'\n{exc.args}')
 
     def _show_error_dialog(self, message) -> None:
         title = 'Something went wrong'
