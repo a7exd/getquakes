@@ -11,7 +11,7 @@ def connect_decorator(func):
     
     def wrapper(args):
         try:
-            with connect(**config.DB) as conn:
+            with connect(**config.DB, connection_timeout=2) as conn:
                 return func(*args, conn=conn)
         except Error as exc:
             raise ConnectDatabaseError(exc.msg)
