@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import decimal
+from decimal import Decimal
 from dataclasses import dataclass
 from datetime import datetime
 from typing import NamedTuple, Tuple, Set
@@ -13,7 +13,7 @@ class Sta:
     phase: str
     entry: str
     phase_dt: datetime
-    ampl: decimal
+    ampl: Decimal
     period: float
     mag_ML: float
     mag_MPSP: float
@@ -33,7 +33,7 @@ class Quake:
     lon: float
     depth: float
     reg: str
-    stations: Tuple[Sta]
+    stations: Tuple[Sta, ...]
 
     def get_stations_name(self) -> Set[str]:
         stations_name = set()
@@ -42,8 +42,8 @@ class Quake:
         return stations_name
 
     def get_magnitude(self) -> Magnitude:
-        ml = n_ml = mpsp = n_mpsp = 0
-        avg_ml = avg_mpsp = None
+        ml = n_ml = mpsp = n_mpsp = 0.0
+        avg_ml = avg_mpsp = 0.0
         for sta in self.stations:
             if sta.mag_ML:
                 ml += sta.mag_ML

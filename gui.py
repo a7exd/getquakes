@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QDialog, QMainWindow, QMessageBox,
 
 from exceptions import NoSelectedQuakesError, ConnectDatabaseError, \
     FormatToStrError
-from quake_storages import save_quakes,  storages
+from quake_storages import save_quakes, storages
 from quake_structures import Quake
 from ui.main_window_ui import Ui_MainWindow
 from ui.db_conn_ui import Ui_Dialog
@@ -49,7 +49,7 @@ class Window(QMainWindow, Ui_MainWindow):
                                             f'(File->Settings->Connection) '
                                             f'and try again!')
 
-    def get_selected_quakes(self) -> Tuple[Quake]:
+    def get_selected_quakes(self) -> Tuple[Quake, ...]:
         """Obtain tuple of Quake() according to selected quakes
         from the table of GUI"""
         selected_data = self._get_selected_data()
@@ -59,7 +59,7 @@ class Window(QMainWindow, Ui_MainWindow):
         """Save function depending on ext of file."""
         self.progressBar.setValue(10)
         dialog = QFileDialog(self)
-        if not (file := dialog.getSaveFileName(dir='untitled.txt',
+        if not (file := dialog.getSaveFileName(self, dir='untitled.txt',
                                                filter=self.file_filter)[0]):
             return self._show_error_dialog('File is not selected! '
                                            'Select a file and try again, '

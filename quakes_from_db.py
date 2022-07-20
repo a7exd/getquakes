@@ -5,6 +5,7 @@ from mysql.connector.abstracts import MySQLConnectionAbstract
 import config
 from exceptions import ConnectDatabaseError
 from quake_structures import Quake, Sta
+from datetime import datetime
 
 
 def connect_decorator(func):
@@ -49,11 +50,12 @@ def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
         return cursor.fetchall()
 
 
-def get_quakes(data_lst: Iterable[tuple]) -> Tuple[Quake]:
+def get_quakes(data_lst: Iterable[tuple]) -> Tuple[Quake, ...]:
     """Return tuple of Quake data structures from db records"""
     quakes = []
-    _id = origin_dt = lat = lon = depth = reg = ''
-    sta_lst = []
+    _id, origin_dt, lat, lon, depth, reg =\
+        '', datetime(year=1, month=1, day=1), 0.0, 0.0, 0.0, ''
+    sta_lst: List[Sta, ] = []
     for data in data_lst:
         if data[0] != _id:
             if len(sta_lst) != 0:

@@ -2,7 +2,7 @@
 import string
 from datetime import datetime
 from pathlib import Path
-from typing import Protocol, Sequence, Iterable, Tuple
+from typing import Protocol, Sequence, Iterable, Tuple, List
 
 import openpyxl
 from openpyxl.styles import Alignment
@@ -78,13 +78,13 @@ class BulletinStorage:
 
     def __init__(self, file: Path):
         self._file = file
-        self.origin_dt = None
-        self.lat = None
-        self.lon = None
-        self.mag = None
-        self.avg_ml = None
-        self.avg_mpsp = None
-        self.depth = None
+        self.origin_dt = ''
+        self.lat = ''
+        self.lon = ''
+        self.mag = ''
+        self.avg_ml = ''
+        self.avg_mpsp = ''
+        self.depth = ''
 
     def save(self, quakes: Sequence[Quake]) -> None:
         with self._file.open('w', encoding='utf8') as f:
@@ -143,7 +143,7 @@ class NASBulletinStorage:
 
     def __init__(self, path: Path):
         self._path = path.joinpath(*path.parts[:-1])
-        self.bltn_strings = []
+        self.bltn_strings: List[str, ] = []
 
     def save(self, quakes: Sequence[Quake]) -> None:
         for quake in quakes:
