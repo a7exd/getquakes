@@ -25,13 +25,14 @@ def save_quakes(quakes: Sequence[Quake], storage: QuakesStorage) -> None:
     storage.save(quakes)
 
 
-class CatalogStorage:
+class CatalogStorage(QuakesStorage):
     """Store some quakes info as a catalog in an Excel file"""
 
     def __init__(self, file: Path):
         self._file = file
         self._init_storage()
         self.wb = openpyxl.load_workbook(self._file)
+        self._del_init_empty_worksheet()
         self.sheet: Worksheet
 
     def save(self, quakes: Sequence[Quake]) -> None:
@@ -72,8 +73,14 @@ class CatalogStorage:
         else:
             self.sheet = self.wb.get_sheet_by_name(sheet_name)
 
+    def _del_init_empty_worksheet(self):
+        if ('Sheet' in self.wb.sheetnames) and (
+                (self.wb['Sheet'].max_row == 1) and
+                (self.wb['Sheet'].max_column == 1)):
+            del self.wb['Sheet']
 
-class BulletinStorage:
+
+class BulletinStorage(QuakesStorage):
     """Store some quakes info as a bulletin in a plain text file"""
 
     def __init__(self, file: Path):
@@ -137,7 +144,7 @@ class BulletinStorage:
         return res + '\n'
 
 
-class NASBulletinStorage:
+class NASBulletinStorage(QuakesStorage):
     """Store some info of each quake as a bulletin for NAS program
     in a separate plain text file with ext (*.bltn)"""
 
@@ -169,7 +176,7 @@ class NASBulletinStorage:
                     f'{sta.name}    {sta.phase}={phase_dt}')
 
 
-class ArcGisStorage:
+class ArcGisStorage(QuakesStorage):
     """Store some quakes info in a plain text file
     for further processing in ArcGis program"""
 
