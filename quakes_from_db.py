@@ -1,27 +1,23 @@
 # -*- coding: utf-8 -*-
-from typing import Iterable, Tuple, List
+from typing import Tuple, List, NamedTuple, Set
 from mysql.connector import connect, Error
-from mysql.connector.abstracts import MySQLConnectionAbstract
 import config
 from exceptions import ConnectDatabaseError
 from quake_structures import Quake, Sta
 from datetime import datetime
 
 
-def connect_decorator(func):
-    
-    def wrapper(args):
-        try:
-            with connect(**config.DB, connection_timeout=2) as conn:
-                return func(*args, conn=conn)
-        except Error as exc:
-            raise ConnectDatabaseError(exc.msg)
-
-    return wrapper
+class QueryParams(NamedTuple):
+    from_dt: str
+    to_dt: str
+    comment: str
+    sta: str
+    from_mag: str
+    to_mag: str
 
 
-def get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag: str) -> str:
-    sta = '' if sta.lower() == 'all' else sta
+def get_sql_query(params: QueryParams) -> str:
+    sta = '' if params.sta.lower() == 'all' else params.sta
     return f"SELECT" \
            f" o.EVENTID, FROM_UNIXTIME(o.ORIGINTIME), o.LAT, o.LON," \
            f" o.`DEPTH`, SUBSTR(o.COMMENTS, 20), a.STA, ROUND(a.DIST, 3)," \
@@ -31,38 +27,41 @@ def get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag: str) -> str:
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
-           f" (o.COMMENTS LIKE '%{comment}%')" \
+           f" (o.COMMENTS LIKE '%{params.comment}%')" \
            f" AND" \
-           f" (FROM_UNIXTIME(o.ORIGINTIME) BETWEEN '{from_dt}' AND '{to_dt}')" \
+           f" (FROM_UNIXTIME(o.ORIGINTIME) BETWEEN '{params.from_dt}' AND " \
+           f"                                       '{params.to_dt}')" \
            f" AND (a.STA LIKE '%{sta}%')" \
-           f" AND ((a.ML BETWEEN {from_mag} AND {to_mag}) OR" \
-           f"    (a.MPSP BETWEEN {from_mag} AND {to_mag}))" \
            f" ORDER BY o.ORIGINTIME"
 
 
-@connect_decorator
-def get_data(from_dt, to_dt, comment, sta, from_mag, to_mag: str,
-             conn: MySQLConnectionAbstract) -> List[tuple]:
+def get_data(params: QueryParams) -> List[tuple]:
     """Returns data of quakes from DB"""
-    sql = get_sql_query(from_dt, to_dt, comment, sta, from_mag, to_mag)
-    with conn.cursor() as cursor:
-        cursor.execute(sql)
-        return cursor.fetchall()
+    sql = get_sql_query(params)
+    try:
+        with connect(**config.DB, connection_timeout=2) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                return cursor.fetchall()
+    except Error as exc:
+        raise ConnectDatabaseError(exc.msg)
 
 
-def get_quakes(data_lst: Iterable[tuple]) -> Tuple[Quake, ...]:
+def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     """Return tuple of Quake data structures from db records"""
     quakes = []
     _id, origin_dt, lat, lon, depth, reg =\
         '', datetime(year=1, month=1, day=1), 0.0, 0.0, 0.0, ''
-    sta_lst: List[Sta, ] = []
-    for data in data_lst:
-        if data[0] != _id:
-            if len(sta_lst) != 0:
+    stations: Set[Sta] = set()
+    quake_records = get_data(params)
+    for quake_record in quake_records:
+        if quake_record[0] != _id:
+            if len(stations) != 0:
                 quakes.append(
-                    Quake(_id, origin_dt, lat, lon, depth, reg, tuple(sta_lst)))
-                sta_lst.clear()
-            _id, origin_dt, lat, lon, depth, reg = data[:6]
-        sta_lst.append(Sta(*data[6:]))
-    quakes.append(Quake(_id, origin_dt, lat, lon, depth, reg, tuple(sta_lst)))
+                    Quake(_id, origin_dt, lat, lon, depth, reg,
+                          tuple(stations)))
+                stations.clear()
+            _id, origin_dt, lat, lon, depth, reg = quake_record[:6]
+        stations.add(Sta(*quake_record[6:]))
+    quakes.append(Quake(_id, origin_dt, lat, lon, depth, reg, tuple(stations)))
     return tuple(quakes)

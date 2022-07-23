@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
-from typing import Generator, Tuple, List
+from typing import Generator, List
 
 from PySide6.QtWidgets import (QDialog, QMainWindow, QMessageBox,
                                QFileDialog, QTableWidgetItem)
@@ -8,11 +8,10 @@ from PySide6.QtWidgets import (QDialog, QMainWindow, QMessageBox,
 from exceptions import NoSelectedQuakesError, ConnectDatabaseError, \
     FormatToStrError
 from quake_storages import save_quakes, storages
-from quake_structures import Quake
 from ui.main_window_ui import Ui_MainWindow
 from ui.db_conn_ui import Ui_Dialog
 import config
-from quakes_from_db import get_data, get_quakes
+from quakes_from_db import get_quakes, QueryParams
 import logging.config
 
 
@@ -28,7 +27,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._connect_signals_slots()
         self.file_filter = ';;'.join(config.FILES_FILTERS.values())
-        self.raw_quakes_data = None
+        self.quakes = None
         self.statusBar().showMessage('Ready')
 
     def search_quakes(self) -> None:
@@ -36,9 +35,11 @@ class Window(QMainWindow, Ui_MainWindow):
         try:
             log.info(f'Start search for records. '
                      f'DB connection config: {config.DB}.')
-            self.raw_quakes_data = get_data(self._get_query_params())
+            query_params = self._get_query_params()
+            log.info(f'{query_params}')
+            self.quakes = get_quakes(query_params)
             self._set_data_into_table()
-            self.statusBar().showMessage(f'Searched records: '
+            self.statusBar().showMessage(f'Searched quakes: '
                                          f'{self.tableWidget.rowCount()}')
             self.progressBar.setValue(100)
         except ConnectDatabaseError as exc:
@@ -49,11 +50,12 @@ class Window(QMainWindow, Ui_MainWindow):
                                             f'(File->Settings->Connection) '
                                             f'and try again!')
 
-    def get_selected_quakes(self) -> Tuple[Quake, ...]:
+    def get_selected_quakes(self) -> Generator:
         """Obtain tuple of Quake() according to selected quakes
         from the table of GUI"""
-        selected_data = self._get_selected_data()
-        return get_quakes(selected_data)
+        selected_id = self._get_selected_quakes_id()
+        return (quake for quake in self.quakes
+                if quake.id in selected_id)
 
     def save_file(self) -> None:
         """Save function depending on ext of file."""
@@ -69,7 +71,6 @@ class Window(QMainWindow, Ui_MainWindow):
         ext = file.suffix
         try:
             quakes = self.get_selected_quakes()
-            log.info(f'{len(quakes)} quakes are ready to save into the file')
             save_quakes(quakes, storages[ext](file))
             self.statusBar().showMessage('Writing into the file '
                                          'completed successfully.')
@@ -105,21 +106,22 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def _set_data_into_table(self) -> None:
         self.tableWidget.setRowCount(0)
-        for quake_data in self.raw_quakes_data:
-            params_dict = {config.ALL_PARAMS[i]: quake_data[i]
-                           for i in range(len(quake_data))}
-            column_num = 0
+        for quake in self.quakes:
             row = self.tableWidget.rowCount()
             self.tableWidget.insertRow(row)
-            for param in config.GUI_TABLE_PARAMS:
+            quake_vals = (quake.id, quake.origin_dt, quake.lat, quake.lon,
+                          quake.depth, quake.magnitude.ML,
+                          quake.magnitude.MPSP, quake.reg)
+            for column, val in enumerate(quake_vals):
                 self.tableWidget.setItem(
-                    row, column_num, QTableWidgetItem(f'{params_dict[param]}'))
-                column_num += 1
-
-    def _get_selected_data(self) -> Generator:
-        selected_id = self._get_selected_quakes_id()
-        return (data for data in self.raw_quakes_data
-                for _id in selected_id if data[0] == _id)
+                    row, column, QTableWidgetItem(f'{val}'))
+            sta_ph_time = []
+            for sta in quake.stations:
+                sta_ph_time.append(
+                    ' '.join(
+                        (sta.name, sta.phase, f'{sta.phase_dt}')) + '\n')
+            self.tableWidget.setItem(
+                row, 8, QTableWidgetItem('\n'.join(sta_ph_time)))
 
     def _get_selected_quakes_id(self) -> List[str]:
         selected_items_amnt = len(self.tableWidget.selectedItems())
@@ -128,20 +130,17 @@ class Window(QMainWindow, Ui_MainWindow):
         if selected_items_amnt == 0 or selected_items_amnt % col_count != 0:
             raise NoSelectedQuakesError('Nothing is selected! At least one row'
                                         ' from the table must be selected!')
-        log.info(f'selected records amount: {selected_items_amnt / col_count}')
+        log.info(f'selected quakes amount: {selected_items_amnt / col_count}')
         return [self.tableWidget.selectedItems()[i].text()
                 for i in range(selected_items_amnt) if i % col_count == 0]
 
-    def _get_query_params(self) -> Tuple[str, ...]:
-        from_dt = self.from_dateTime.text()
-        to_dt = self.to_dateTime.text()
-        comment = self.comment_line.text()
-        sta = self.sta_line.text()
-        from_mag = f'{self.from_Mag.value()}'
-        to_mag = f'{self.to_Mag.value()}'
-        params = from_dt, to_dt, comment, sta, from_mag, to_mag
-        log.info(f'query params: {params}')
-        return params
+    def _get_query_params(self) -> QueryParams:
+        return QueryParams(from_dt=self.from_dateTime.text(),
+                           to_dt=self.to_dateTime.text(),
+                           comment=self.comment_line.text(),
+                           sta=self.sta_line.text(),
+                           from_mag=f'{self.from_Mag.value()}',
+                           to_mag=f'{self.to_Mag.value()}')
 
     def about(self) -> None:
         QMessageBox.about(
