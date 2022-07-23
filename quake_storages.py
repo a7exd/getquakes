@@ -52,7 +52,7 @@ class CatalogStorage(QuakesStorage):
         origin_dt, lat, lon, _, avg_ml, avg_mpsp, depth = _format_common_attrs(
             quake)
         origin_d, origin_t = origin_dt.split()
-        stations_name = ', '.join(quake.get_stations_name())
+        stations_name = ', '.join(quake.stations_name)
         row = (origin_d, origin_t, lat, lon, depth, quake.reg, avg_ml,
                avg_mpsp, stations_name)
         self.sheet.append(row)
@@ -123,7 +123,7 @@ class BulletinStorage(QuakesStorage):
                               config.AMNT_COLUMN_SYMBOLS['quake_hdr'])
 
     def _get_quake_hdr(self, quake: Quake) -> str:
-        amnt_sta = str(len(quake.get_stations_name()))
+        amnt_sta = str(len(quake.stations_name))
         return _format_to_str(
             columns_data=(self.origin_dt, self.lat, self.lon, self.depth,
                           amnt_sta, self.mag, quake.reg),
@@ -164,7 +164,7 @@ class NASBulletinStorage(QuakesStorage):
     def _get_rows(self, quake: Quake) -> None:
         self.bltn_strings.clear()
         if (quake.lat is not None and quake.lon is not None) \
-                or len(quake.get_stations_name()) > 4:
+                or len(quake.stations_name) > 4:
             dt = datetime.strftime(quake.origin_dt, '%Y %m %d %H %M %S.%f')[:-3]
             lat = f'{quake.lat:.2f}' if quake.lat else '-'
             lon = f'{quake.lon:.2f}' if quake.lon else '-'
@@ -208,7 +208,7 @@ def _format_common_attrs(quake: Quake) -> Tuple[str, ...]:
     origin_dt = datetime.strftime(quake.origin_dt, '%d.%m.%Y %H:%M:%S.%f')[:-3]
     lat = f'{quake.lat:.2f}' if quake.lat else '-'
     lon = f'{quake.lon:.2f}' if quake.lon else '-'
-    mag = quake.get_magnitude()
+    mag = quake.magnitude
     avg_ml = f'{mag.ML:.1f}' if mag.ML else '-'
     avg_mpsp = f'{mag.MPSP:.1f}' if mag.MPSP else '-'
     preferred_mag = avg_ml if avg_ml != '-' else avg_mpsp

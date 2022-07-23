@@ -5,8 +5,7 @@ from datetime import datetime
 from typing import NamedTuple, Tuple, Set
 
 
-@dataclass(slots=True)
-class Sta:
+class Sta(NamedTuple):
     name: str
     dist: float
     azimuth: float
@@ -35,13 +34,15 @@ class Quake:
     reg: str
     stations: Tuple[Sta, ...]
 
-    def get_stations_name(self) -> Set[str]:
+    @property
+    def stations_name(self) -> Set[str]:
         stations_name = set()
         for sta in self.stations:
             stations_name.add(sta.name)
         return stations_name
 
-    def get_magnitude(self) -> Magnitude:
+    @property
+    def magnitude(self) -> Magnitude:
         ml = n_ml = mpsp = n_mpsp = 0.0
         avg_ml = avg_mpsp = 0.0
         for sta in self.stations:
