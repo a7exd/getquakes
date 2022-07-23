@@ -330,88 +330,45 @@
          <property name="text">
           <string>ID</string>
          </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
         </column>
         <column>
          <property name="text">
           <string>Origin Time</string>
-         </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
          </property>
         </column>
         <column>
          <property name="text">
           <string>Lat</string>
          </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
         </column>
         <column>
          <property name="text">
           <string>Lon</string>
-         </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
          </property>
         </column>
         <column>
          <property name="text">
           <string>Depth</string>
          </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>STA</string>
-         </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Ph</string>
-         </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>time</string>
-         </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
         </column>
         <column>
          <property name="text">
           <string>ML</string>
-         </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
          </property>
         </column>
         <column>
          <property name="text">
           <string>MPSP</string>
          </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
-         </property>
         </column>
         <column>
          <property name="text">
           <string>Region</string>
          </property>
-         <property name="textAlignment">
-          <set>AlignCenter</set>
+        </column>
+        <column>
+         <property name="text">
+          <string>STA, Ph, time</string>
          </property>
         </column>
        </widget>
