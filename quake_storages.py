@@ -16,11 +16,11 @@ from quake_structures import Quake
 class QuakesStorage(Protocol):
     """Interface of any storage for saving info of quakes"""
 
-    def save(self, quakes: Sequence[Quake]) -> None:
+    def save(self, quakes: Iterable[Quake]) -> None:
         raise NotImplementedError
 
 
-def save_quakes(quakes: Sequence[Quake], storage: QuakesStorage) -> None:
+def save_quakes(quakes: Iterable[Quake], storage: QuakesStorage) -> None:
     """Save quakes in the storage"""
     storage.save(quakes)
 
@@ -35,7 +35,7 @@ class CatalogStorage(QuakesStorage):
         self._del_init_empty_worksheet()
         self.sheet: Worksheet
 
-    def save(self, quakes: Sequence[Quake]) -> None:
+    def save(self, quakes: Iterable[Quake]) -> None:
         for quake in quakes:
             if quake.lat is None or quake.lon is None:
                 continue
@@ -93,7 +93,7 @@ class BulletinStorage(QuakesStorage):
         self.avg_mpsp = ''
         self.depth = ''
 
-    def save(self, quakes: Sequence[Quake]) -> None:
+    def save(self, quakes: Iterable[Quake]) -> None:
         with self._file.open('w', encoding='utf8') as f:
             amnt_quakes = 0
             for quake in quakes:
@@ -152,7 +152,7 @@ class NASBulletinStorage(QuakesStorage):
         self._path = path.joinpath(*path.parts[:-1])
         self.bltn_strings: List[str, ] = []
 
-    def save(self, quakes: Sequence[Quake]) -> None:
+    def save(self, quakes: Iterable[Quake]) -> None:
         for quake in quakes:
             self._get_rows(quake)
             if self.bltn_strings:
@@ -183,7 +183,7 @@ class ArcGisStorage(QuakesStorage):
     def __init__(self, file: Path):
         self._file = file
 
-    def save(self, quakes: Sequence[Quake]) -> None:
+    def save(self, quakes: Iterable[Quake]) -> None:
         with self._file.open('w', encoding='utf8') as f:
             f.write(' '.join(config.ArcGIS_HEADER) + '\n')
             for quake in quakes:
