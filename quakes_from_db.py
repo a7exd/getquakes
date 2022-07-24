@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Tuple, List, NamedTuple, Set
+from typing import Tuple, List, NamedTuple, Set, Generator
 from mysql.connector import connect, Error
 import config
 from exceptions import ConnectDatabaseError
@@ -20,10 +20,13 @@ def get_sql_query(params: QueryParams) -> str:
     sta = '' if params.sta.lower() == 'all' else params.sta
     return f"SELECT" \
            f" o.EVENTID, FROM_UNIXTIME(o.ORIGINTIME), o.LAT, o.LON," \
-           f" o.`DEPTH`, SUBSTR(o.COMMENTS, 20), a.STA, ROUND(a.DIST, 3)," \
+           f" o.`DEPTH`," \
+           f" CONCAT(SUBSTR(o.COMMENTS, 1, INSTR(o.COMMENTS, '.') - 3),"\
+           f"        SUBSTR(o.COMMENTS, 20))," \
+           f" a.STA, ROUND(a.DIST, 3)," \
            f" ROUND(a.AZIMUTH, 3), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
            f" FROM_UNIXTIME(a.ITIME), ROUND(a.AMPL, 3), ROUND(a.PER, 2)," \
-           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1) " \
+           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1), a.CHAN " \
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
@@ -64,4 +67,8 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
             _id, origin_dt, lat, lon, depth, reg = quake_record[:6]
         stations.add(Sta(*quake_record[6:]))
     quakes.append(Quake(_id, origin_dt, lat, lon, depth, reg, tuple(stations)))
-    return tuple(quakes)
+    from_mag, to_mag = float(params.from_mag), float(params.to_mag)
+    filtered_quakes = [quake for quake in quakes
+                       if (from_mag <= quake.magnitude.ML <= to_mag)
+                       or (from_mag <= quake.magnitude.MPSP <= to_mag)]
+    return tuple(filtered_quakes)
