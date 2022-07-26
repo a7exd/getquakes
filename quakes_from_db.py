@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Tuple, List, NamedTuple, Set, Generator
+from typing import Tuple, List, NamedTuple
 from mysql.connector import connect, Error
 import config
 from exceptions import ConnectDatabaseError
@@ -16,31 +16,33 @@ class QueryParams(NamedTuple):
     to_mag: str
 
 
-def get_sql_query(params: QueryParams) -> str:
+def _get_sql_query(params: QueryParams) -> str:
     sta = '' if params.sta.lower() == 'all' else params.sta
+    from_dt = datetime.strptime(params.from_dt, '%Y-%m-%d %H:%M:%S').timestamp()
+    to_dt = datetime.strptime(params.to_dt, '%Y-%m-%d %H:%M:%S').timestamp()
     return f"SELECT" \
-           f" o.EVENTID, FROM_UNIXTIME(o.ORIGINTIME), o.LAT, o.LON," \
+           f" o.EVENTID, o.ORIGINTIME, o.LAT, o.LON," \
            f" o.`DEPTH`," \
            f" CONCAT(SUBSTR(o.COMMENTS, 1, INSTR(o.COMMENTS, '.') - 3),"\
            f"        SUBSTR(o.COMMENTS, 20))," \
-           f" a.STA, ROUND(a.DIST, 3)," \
+           f" a.ITIME, a.STA, ROUND(a.DIST, 3)," \
            f" ROUND(a.AZIMUTH, 3), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
-           f" FROM_UNIXTIME(a.ITIME), ROUND(a.AMPL, 3), ROUND(a.PER, 2)," \
-           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1), a.CHAN " \
+           f" ROUND(a.AMPL, 3), ROUND(a.PER, 2)," \
+           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1)" \
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
            f" (o.COMMENTS LIKE '%{params.comment}%')" \
            f" AND" \
-           f" (FROM_UNIXTIME(o.ORIGINTIME) BETWEEN '{params.from_dt}' AND " \
-           f"                                       '{params.to_dt}')" \
+           f" (o.ORIGINTIME BETWEEN '{from_dt}' AND " \
+           f"                                       '{to_dt}')" \
            f" AND (a.STA LIKE '%{sta}%')" \
-           f" ORDER BY o.ORIGINTIME"
+           f" ORDER BY a.ITIME"
 
 
 def get_data(params: QueryParams) -> List[tuple]:
     """Returns data of quakes from DB"""
-    sql = get_sql_query(params)
+    sql = _get_sql_query(params)
     try:
         with connect(**config.DB, connection_timeout=2) as conn:
             with conn.cursor() as cursor:
@@ -51,24 +53,48 @@ def get_data(params: QueryParams) -> List[tuple]:
 
 
 def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
-    """Return tuple of Quake data structures from db records"""
+    """Return tuple of Quake from db records"""
     quakes = []
-    _id, origin_dt, lat, lon, depth, reg =\
+    stations: List[Sta] = []
+    _id, origin_dt, lat, lon, depth, reg = \
         '', datetime(year=1, month=1, day=1), 0.0, 0.0, 0.0, ''
-    stations: Set[Sta] = set()
     quake_records = get_data(params)
+    prev_sta = None
     for quake_record in quake_records:
         if quake_record[0] != _id:
             if len(stations) != 0:
-                quakes.append(
-                    Quake(_id, origin_dt, lat, lon, depth, reg,
-                          tuple(stations)))
+                quake = Quake(_id, datetime.utcfromtimestamp(origin_dt), lat,
+                              lon, depth, reg, tuple(stations))
+                quakes.append(quake)
                 stations.clear()
+                prev_sta = None
             _id, origin_dt, lat, lon, depth, reg = quake_record[:6]
-        stations.add(Sta(*quake_record[6:]))
-    quakes.append(Quake(_id, origin_dt, lat, lon, depth, reg, tuple(stations)))
+
+        sta_dt = datetime.utcfromtimestamp(quake_record[6])
+        sta = Sta(sta_dt, *quake_record[7:])
+        prev_sta = _add_sta(sta, stations, prev_sta)
+    quakes.append(Quake(_id, datetime.utcfromtimestamp(origin_dt), lat, lon,
+                        depth, reg, tuple(stations)))
+    return tuple(_filter_magnitude(quakes, params))
+
+
+def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
+    if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt):
+        stations.append(sta)
+        out_sta = sta
+    else:
+        if sta.dist is not None: prev_sta.dist = sta.dist
+        if sta.azimuth is not None: prev_sta.azimuth = sta.azimuth
+        if sta.ampl is not None: prev_sta.ampl = sta.ampl
+        if sta.period is not None: prev_sta.period = sta.period
+        if sta.mag_ML is not None: prev_sta.mag_ML = sta.mag_ML
+        if sta.mag_MPSP is not None: prev_sta.mag_MPSP = sta.mag_MPSP
+        out_sta = prev_sta
+    return out_sta
+
+
+def _filter_magnitude(quakes: List[Quake], params: QueryParams) -> List[Quake]:
     from_mag, to_mag = float(params.from_mag), float(params.to_mag)
-    filtered_quakes = [quake for quake in quakes
-                       if (from_mag <= quake.magnitude.ML <= to_mag)
-                       or (from_mag <= quake.magnitude.MPSP <= to_mag)]
-    return tuple(filtered_quakes)
+    return [quake for quake in quakes
+            if (from_mag <= quake.magnitude.ML <= to_mag)
+            or (from_mag <= quake.magnitude.MPSP <= to_mag)]

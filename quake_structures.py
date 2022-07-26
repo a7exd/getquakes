@@ -5,13 +5,14 @@ from datetime import datetime
 from typing import NamedTuple, Tuple, Set
 
 
-class Sta(NamedTuple):
+@dataclass(slots=True)
+class Sta:
+    phase_dt: datetime
     name: str
     dist: float
     azimuth: float
     phase: str
     entry: str
-    phase_dt: datetime
     ampl: Decimal
     period: float
     mag_ML: float
