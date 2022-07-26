@@ -61,8 +61,9 @@ class Window(QMainWindow, Ui_MainWindow):
         """Save function depending on ext of file."""
         self.progressBar.setValue(10)
         dialog = QFileDialog(self)
-        if not (file := dialog.getSaveFileName(self, dir='untitled.txt',
-                                               filter=self.file_filter)[0]):
+        file = dialog.getSaveFileName(self, dir='untitled.txt',
+                                      filter=self.file_filter)[0]
+        if not file:
             return self._show_error_dialog('File is not selected! '
                                            'Select a file and try again, '
                                            'please.')
