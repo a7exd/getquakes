@@ -7,9 +7,9 @@ from PySide6.QtWidgets import (QDialog, QMainWindow, QMessageBox,
 
 from exceptions import NoSelectedQuakesError, ConnectDatabaseError, \
     FormatToStrError
-from quake_storages import save_quakes, storages
-from ui.main_window_ui import Ui_MainWindow
-from ui.db_conn_ui import Ui_Dialog
+from quake_storages import save_quakes, get_storage
+from ui.main_window_ui import Ui_MainWindow  # type: ignore
+from ui.db_conn_ui import Ui_Dialog  # type: ignore
 import config
 from quakes_from_db import get_quakes, QueryParams
 import logging.config
@@ -72,7 +72,8 @@ class Window(QMainWindow, Ui_MainWindow):
         ext = file.suffix
         try:
             quakes = self.get_selected_quakes()
-            save_quakes(quakes, storages[ext](file))
+            storage = get_storage(ext)
+            save_quakes(quakes, storage(file))
             self.statusBar().showMessage('Writing into the file '
                                          'completed successfully.')
             log.info(f'Writing into the file completed successfully.')

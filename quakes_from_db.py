@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Tuple, List, NamedTuple
-from mysql.connector import connect, Error
+from mysql.connector import connect, Error  # type: ignore
 import config
 from exceptions import ConnectDatabaseError
 from quake_structures import Quake, Sta
@@ -56,24 +56,26 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     """Return tuple of Quake from db records"""
     quakes = []
     stations: List[Sta] = []
-    _id, origin_dt, lat, lon, depth, reg = \
-        '', datetime(year=1, month=1, day=1), 0.0, 0.0, 0.0, ''
+    origin_dt = datetime(year=1, month=1, day=1)
+    _id, origin_dtime, lat, lon, depth, reg = \
+        '', 0.0, 0.0, 0.0, 0.0, ''
     quake_records = get_data(params)
     prev_sta = None
     for quake_record in quake_records:
         if quake_record[0] != _id:
             if len(stations) != 0:
-                quake = Quake(_id, datetime.utcfromtimestamp(origin_dt), lat,
+                quake = Quake(_id, origin_dt, lat,
                               lon, depth, reg, tuple(stations))
                 quakes.append(quake)
                 stations.clear()
                 prev_sta = None
-            _id, origin_dt, lat, lon, depth, reg = quake_record[:6]
+            _id, origin_dtime, lat, lon, depth, reg = quake_record[:6]
+            origin_dt = datetime.utcfromtimestamp(origin_dtime)
 
         sta_dt = datetime.utcfromtimestamp(quake_record[6])
         sta = Sta(sta_dt, *quake_record[7:])
         prev_sta = _add_sta(sta, stations, prev_sta)
-    quakes.append(Quake(_id, datetime.utcfromtimestamp(origin_dt), lat, lon,
+    quakes.append(Quake(_id, origin_dt, lat, lon,
                         depth, reg, tuple(stations)))
     return tuple(_filter_magnitude(quakes, params))
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from pathlib import Path
-from typing import Protocol, Sequence, Iterable, Tuple, List
+from typing import Protocol, Sequence, Iterable, Tuple, List, Callable
 
 import openpyxl
 from openpyxl.styles import Alignment
@@ -228,7 +228,9 @@ def _format_to_str(columns_data: Sequence, hdr_type_config: Sequence) -> str:
     return res
 
 
-storages = {'.txt': BulletinStorage,
-            '.bltn': NASBulletinStorage,
-            '.GIS': ArcGisStorage,
-            '.xlsx': CatalogStorage}
+def get_storage(ext: str) -> Callable:
+    storage = {'.txt': BulletinStorage,
+               '.bltn': NASBulletinStorage,
+               '.xlsx': CatalogStorage,
+               '.GIS': ArcGisStorage}
+    return storage[ext]
