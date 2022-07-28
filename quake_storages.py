@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import string
 from datetime import datetime
 from pathlib import Path
 from typing import Protocol, Sequence, Iterable, Tuple, List
@@ -41,6 +40,7 @@ class CatalogStorage(QuakesStorage):
                 continue
             self._init_sheet(quake)
             self._add_values_in_sheet(quake)
+        self._set_alignment()
         self.wb.save(self._file)
 
     def _init_storage(self) -> None:
@@ -58,25 +58,25 @@ class CatalogStorage(QuakesStorage):
         self.sheet.append(row)
 
     def _set_alignment(self) -> None:
-        for letter in (string.ascii_uppercase[:len(config.CATALOG_HEADER)]):
-            columns = self.sheet.column_dimensions[letter]
-            columns.alignment = Alignment(horizontal='center',
-                                          vertical='center')
+        for sheet in self.wb.sheetnames:
+            rows_of_cells = self.wb[sheet][self.wb[sheet].dimensions]
+            for row in rows_of_cells:
+                for cell in row:
+                    cell.alignment = Alignment(horizontal='center',
+                                               vertical='center')
 
     def _init_sheet(self, quake: Quake) -> None:
         month_num = quake.origin_dt.month - 1
         sheet_name = config.MONTHS[month_num]
         if sheet_name not in self.wb.sheetnames:
             self.sheet = self.wb.create_sheet(sheet_name, month_num)
-            self._set_alignment()
             self.sheet.append(config.CATALOG_HEADER)
         else:
             self.sheet = self.wb.get_sheet_by_name(sheet_name)
 
     def _del_init_empty_worksheet(self):
-        if ('Sheet' in self.wb.sheetnames) and (
-                (self.wb['Sheet'].max_row == 1) and
-                (self.wb['Sheet'].max_column == 1)):
+        if 'Sheet' in self.wb.sheetnames and \
+                self.wb['Sheet'].dimensions == 'A1:A1':
             del self.wb['Sheet']
 
 
