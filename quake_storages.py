@@ -91,6 +91,7 @@ class BulletinStorage(QuakesStorage):
         self.mag = ''
         self.avg_ml = ''
         self.avg_mpsp = ''
+        self.mag_type = '-'
         self.depth = ''
 
     def save(self, quakes: Iterable[Quake]) -> None:
@@ -98,7 +99,8 @@ class BulletinStorage(QuakesStorage):
             amnt_quakes = 0
             for quake in quakes:
                 (self.origin_dt, self.lat, self.lon, self.mag, self.avg_ml,
-                 self.avg_mpsp, self.depth) = _format_common_attrs(quake)
+                 self.avg_mpsp, self.depth,
+                 self.mag_type) = _format_common_attrs(quake)
                 rows = self._get_rows(quake)
                 f.write('\n'.join(rows))
                 amnt_quakes += 1
@@ -115,8 +117,7 @@ class BulletinStorage(QuakesStorage):
                 sta_hdr_describe, sta_strings)
 
     def _get_quake_hdr_describe(self) -> str:
-        mag_type = 'ML' if self.avg_ml != '-' else \
-            'MPSP' if self.avg_mpsp != '-' else 'Mag'
+        mag_type = 'Mag' if self.mag_type == '-' else self.mag_type
         columns_data = config.QUAKE_HEADER_DESCRIBE[:]
         columns_data.insert(5, mag_type)
         return _format_to_str(columns_data,
@@ -132,13 +133,14 @@ class BulletinStorage(QuakesStorage):
     def _get_stations_string(self, quake: Quake) -> str:
         res = ''
         for sta in quake.stations:
-            mag = sta.mag_ML if sta.mag_ML else \
-                sta.mag_MPSP if sta.mag_MPSP else '-'
-            mag_type = 'ML' if sta.mag_ML else 'MPSP' if sta.mag_MPSP else '-'
             phase_dt = datetime.strftime(sta.phase_dt,
                                          '%d.%m.%Y %H:%M:%S.%f')[:-3]
-            sta_data = (sta.name, sta.dist, sta.azimuth, sta.phase, sta.entry,
-                        phase_dt, sta.ampl, sta.period, mag, mag_type)
+            dist = f'{sta.dist:.2f}' if sta.dist else '-'
+            az = f'{sta.azimuth:.2f}' if sta.azimuth else '-'
+            ampl = f'{sta.ampl:.4f}' if sta.ampl else '-'
+            period = f'{sta.period:.2f}' if sta.period else '-'
+            sta_data = (sta.name, dist, az, sta.phase, sta.entry, phase_dt,
+                        ampl, period, self.mag, self.mag_type)
             res += _format_to_str(sta_data,
                                   config.AMNT_COLUMN_SYMBOLS['sta_hdr']) + '\n'
         return res + '\n'
@@ -165,9 +167,8 @@ class NASBulletinStorage(QuakesStorage):
         self.bltn_strings.clear()
         if (quake.lat is not None and quake.lon is not None) \
                 or len(quake.stations_name) > 4:
-            dt = datetime.strftime(quake.origin_dt, '%Y %m %d %H %M %S.%f')[:-3]
-            lat = f'{quake.lat:.2f}' if quake.lat else '-'
-            lon = f'{quake.lon:.2f}' if quake.lon else '-'
+            dt, lat, lon = _format_common_attrs(quake,
+                                                '%Y %m %d %H %M %S.%f')[:3]
             self.bltn_strings.append(f'Fi={lat}  LD={lon} T0={dt}')
             for sta in quake.stations:
                 phase_dt = datetime.strftime(sta.phase_dt,
@@ -204,8 +205,9 @@ class ArcGisStorage(QuakesStorage):
         return columns
 
 
-def _format_common_attrs(quake: Quake) -> Tuple[str, ...]:
-    origin_dt = datetime.strftime(quake.origin_dt, '%d.%m.%Y %H:%M:%S.%f')[:-3]
+def _format_common_attrs(quake: Quake,
+                         date_fmt='%d.%m.%Y %H:%M:%S.%f') -> Tuple[str, ...]:
+    origin_dt = datetime.strftime(quake.origin_dt, date_fmt)[:-3]
     lat = f'{quake.lat:.2f}' if quake.lat else '-'
     lon = f'{quake.lon:.2f}' if quake.lon else '-'
     mag = quake.magnitude
@@ -213,7 +215,8 @@ def _format_common_attrs(quake: Quake) -> Tuple[str, ...]:
     avg_mpsp = f'{mag.MPSP:.1f}' if mag.MPSP else '-'
     preferred_mag = avg_ml if avg_ml != '-' else avg_mpsp
     depth = f'{quake.depth:.2f}' if quake.depth else '-'
-    return origin_dt, lat, lon, preferred_mag, avg_ml, avg_mpsp, depth
+    mag_type = 'ML' if avg_ml != '-' else 'MPSP' if avg_mpsp != '-' else '-'
+    return origin_dt, lat, lon, preferred_mag, avg_ml, avg_mpsp, depth, mag_type
 
 
 def _format_to_str(columns_data: Sequence, hdr_type_config: Sequence) -> str:
