@@ -70,3 +70,5 @@ ALL_PARAMS = ('_id', 'origin_dt', 'lat', 'lon', 'depth', 'reg', 'sta',
 # Params of quake that will be displayed in the table of GUI
 GUI_TABLE_PARAMS = ('_id', 'origin_dt', 'lat', 'lon', 'depth', 'sta', 'phase',
                     'phase_dt', 'ml', 'mpsp', 'reg')
+
+STA_RENAME = ['ADZ', 'ARH', 'KLM', 'PRG', 'SLV', 'TMC']

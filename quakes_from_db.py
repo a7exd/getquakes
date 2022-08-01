@@ -36,7 +36,7 @@ def _get_sql_query(params: QueryParams) -> str:
            f" a.ITIME, a.STA, ROUND(a.DIST, 3)," \
            f" ROUND(a.AZIMUTH, 3), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
            f" ROUND(a.AMPL, 4), ROUND(a.PER, 3)," \
-           f" a.ML, a.MPSP" \
+           f" a.ML, a.MPSP " \
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
@@ -91,17 +91,25 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
 
 
 def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
+    if sta.name in config.STA_RENAME:
+        sta.name += 'R'
     if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt) \
             or (sta.name != prev_sta.name):
         stations.append(sta)
         out_sta = sta
     else:
-        if sta.dist is not None: prev_sta.dist = sta.dist
-        if sta.azimuth is not None: prev_sta.azimuth = sta.azimuth
-        if sta.ampl is not None: prev_sta.ampl = sta.ampl
-        if sta.period is not None: prev_sta.period = sta.period
-        if sta.mag_ML is not None: prev_sta.mag_ML = sta.mag_ML
-        if sta.mag_MPSP is not None: prev_sta.mag_MPSP = sta.mag_MPSP
+        if sta.dist is not None:
+            prev_sta.dist = sta.dist
+        if sta.azimuth is not None:
+            prev_sta.azimuth = sta.azimuth
+        if sta.ampl is not None:
+            prev_sta.ampl = sta.ampl
+        if sta.period is not None:
+            prev_sta.period = sta.period
+        if sta.mag_ML is not None:
+            prev_sta.mag_ML = sta.mag_ML
+        if sta.mag_MPSP is not None:
+            prev_sta.mag_MPSP = sta.mag_MPSP
         out_sta = prev_sta
     return out_sta
 
