@@ -10,16 +10,24 @@ from datetime import datetime
 class QueryParams(NamedTuple):
     from_dt: str
     to_dt: str
-    comment: str
     sta: str
     from_mag: str
     to_mag: str
+    comment: str
 
 
 def _get_sql_query(params: QueryParams) -> str:
     sta = '' if params.sta.lower() == 'all' else params.sta
     from_dt = datetime.strptime(params.from_dt, '%Y-%m-%d %H:%M:%S').timestamp()
     to_dt = datetime.strptime(params.to_dt, '%Y-%m-%d %H:%M:%S').timestamp()
+    key_words = params.comment.split()
+    key_words_count = len(key_words)
+    if key_words_count > 1:
+        comment_query = "%' OR o.COMMENTS LIKE '%".join(key_words)
+    elif key_words_count == 1:
+        comment_query = key_words[0]
+    else:
+        comment_query = ""
     return f"SELECT" \
            f" o.EVENTID, o.ORIGINTIME, o.LAT, o.LON," \
            f" o.`DEPTH`," \
@@ -27,12 +35,12 @@ def _get_sql_query(params: QueryParams) -> str:
            f"        SUBSTR(o.COMMENTS, 20))," \
            f" a.ITIME, a.STA, ROUND(a.DIST, 3)," \
            f" ROUND(a.AZIMUTH, 3), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
-           f" ROUND(a.AMPL, 3), ROUND(a.PER, 2)," \
-           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1)" \
+           f" ROUND(a.AMPL, 4), ROUND(a.PER, 3)," \
+           f" a.ML, a.MPSP" \
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
-           f" (o.COMMENTS LIKE '%{params.comment}%')" \
+           f" (o.COMMENTS LIKE '%{comment_query}%')" \
            f" AND" \
            f" (o.ORIGINTIME BETWEEN '{from_dt}' AND " \
            f"                                       '{to_dt}')" \
@@ -64,6 +72,7 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     for quake_record in quake_records:
         if quake_record[0] != _id:
             if len(stations) != 0:
+                stations = sorted(stations, key=sort_stations)
                 quake = Quake(_id, origin_dt, lat,
                               lon, depth, reg, tuple(stations))
                 quakes.append(quake)
@@ -75,13 +84,15 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
         sta_dt = datetime.utcfromtimestamp(quake_record[6])
         sta = Sta(sta_dt, *quake_record[7:])
         prev_sta = _add_sta(sta, stations, prev_sta)
+    stations = sorted(stations, key=sort_stations)
     quakes.append(Quake(_id, origin_dt, lat, lon,
                         depth, reg, tuple(stations)))
     return tuple(_filter_magnitude(quakes, params))
 
 
 def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
-    if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt):
+    if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt) \
+            or (sta.name != prev_sta.name):
         stations.append(sta)
         out_sta = sta
     else:
@@ -93,6 +104,10 @@ def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
         if sta.mag_MPSP is not None: prev_sta.mag_MPSP = sta.mag_MPSP
         out_sta = prev_sta
     return out_sta
+
+
+def sort_stations(sta: Sta) -> float:
+    return sta.dist if sta.dist else 0.0
 
 
 def _filter_magnitude(quakes: List[Quake], params: QueryParams) -> List[Quake]:
