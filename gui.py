@@ -149,8 +149,8 @@ class Window(QMainWindow, Ui_MainWindow):
             self,
             'About getquakes ',
             '<p>Desktop application for obtaining a list of earthquakes from '
-            'a database and then saving it as a bulletin or a file of another '
-            'structure.</p>'
+            'a database and saving it as a bulletin or other file structure.'
+            '</p>'
             '<p>The app built with:</p>'
             '<p>- Qt Designer</p>'
             '<p>- PySide6</p>'
