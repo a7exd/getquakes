@@ -93,6 +93,9 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
 def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
     if sta.name in config.STA_RENAME:
         sta.name += 'R'
+    if prev_sta is not None and sta.name == prev_sta.name \
+            and sta.dist is not None:
+        prev_sta.dist = sta.dist
     if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt) \
             or (sta.name != prev_sta.name):
         stations.append(sta)
