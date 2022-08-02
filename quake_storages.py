@@ -139,8 +139,11 @@ class BulletinStorage(QuakesStorage):
             az = f'{sta.azimuth:.2f}' if sta.azimuth else '-'
             ampl = f'{sta.ampl:.4f}' if sta.ampl else '-'
             period = f'{sta.period:.2f}' if sta.period else '-'
+            mag = f'{sta.mag_ML:.1f}' if sta.mag_ML else \
+                f'{sta.mag_MPSP:.1f}' if sta.mag_MPSP else '-'
+            mag_type = 'ML' if sta.mag_ML else 'MPSP' if sta.mag_MPSP else '-'
             sta_data = (sta.name, dist, az, sta.phase, sta.entry, phase_dt,
-                        ampl, period, self.mag, self.mag_type)
+                        ampl, period, mag, mag_type)
             res += _format_to_str(sta_data,
                                   config.AMNT_COLUMN_SYMBOLS['sta_hdr']) + '\n'
         return res + '\n'
