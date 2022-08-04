@@ -30,14 +30,14 @@ def _get_sql_query(params: QueryParams) -> str:
     else:
         comment_query = ""
     return f"SELECT" \
-           f" o.EVENTID, o.ORIGINTIME, o.LAT, o.LON," \
+           f" o.EVENTID, o.ORIGINTIME, ROUND(o.LAT, 2), ROUND(o.LON, 2)," \
            f" o.`DEPTH`," \
            f" CONCAT(SUBSTR(o.COMMENTS, 1, INSTR(o.COMMENTS, '.') - 3),"\
            f"        SUBSTR(o.COMMENTS, 20))," \
-           f" a.ITIME, a.STA, ROUND(a.DIST, 3)," \
-           f" ROUND(a.AZIMUTH, 3), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
-           f" ROUND(a.AMPL, 4), ROUND(a.PER, 3)," \
-           f" a.ML, a.MPSP " \
+           f" a.ITIME, a.STA, ROUND(a.DIST, 2)," \
+           f" ROUND(a.AZIMUTH, 2), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
+           f" ROUND(a.AMPL, 4), ROUND(a.PER, 2)," \
+           f" ROUND(a.ML, 1), ROUND(a.MPSP, 1) " \
            f"FROM origin o " \
            f"INNER JOIN arrival a ON a.EVENTID = o.EVENTID " \
            f"WHERE" \
@@ -45,7 +45,7 @@ def _get_sql_query(params: QueryParams) -> str:
            f" AND" \
            f" (o.ORIGINTIME BETWEEN '{from_dt_timestamp}' AND " \
            f"                                       '{to_dt_timestamp}')" \
-           f" ORDER BY a.ITIME"
+           f" ORDER BY o.ORIGINTIME"
 
 
 def get_data(params: QueryParams) -> List[tuple]:
@@ -72,7 +72,7 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     for quake_record in quake_records:
         if quake_record[0] != _id:
             if len(stations) != 0:
-                stations = sort_stations(stations)
+                stations = _filter_stations(stations)
                 quake = Quake(_id, origin_dt, lat,
                               lon, depth, reg, tuple(stations))
                 quakes.append(quake)
@@ -83,23 +83,26 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
 
         sta_dt = datetime.utcfromtimestamp(quake_record[6])
         sta = Sta(sta_dt, *quake_record[7:])
-        prev_sta = _add_sta(sta, stations, prev_sta)
-    stations = sort_stations(stations)
+        stations.append(sta)
+    stations = _filter_stations(stations)
     quakes.append(Quake(_id, origin_dt, lat, lon,
                         depth, reg, tuple(stations)))
     return tuple(_filter_quakes(quakes, params))
 
 
-def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
+def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None) -> Sta:
     if sta.name in config.STA_RENAME:
         sta.name += 'R'
+    if prev_sta is not None and sta.name == prev_sta.name:
+        if sta.dist is not None:
+            prev_sta.dist = sta.dist
+        else:
+            sta.dist = prev_sta.dist
     if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt) \
             or (sta.name != prev_sta.name):
         stations.append(sta)
         out_sta = sta
     else:
-        if sta.dist is not None:
-            prev_sta.dist = sta.dist
         if sta.azimuth is not None:
             prev_sta.azimuth = sta.azimuth
         if sta.ampl is not None:
@@ -114,19 +117,16 @@ def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
     return out_sta
 
 
-def sort_stations(stations: List[Sta]) -> List[Sta]:
-    sort_by_name = sorted(stations, key=lambda x: x.name)
+def _filter_stations(stations: List[Sta]) -> List[Sta]:
+    sorted_by_time = sorted(stations, key=lambda x: x.phase_dt)
+    sorted_by_name = sorted(sorted_by_time, key=lambda x: x.name)
+    res = []
     prev_sta: Sta | None = None
-    for sta in sort_by_name:
-        if prev_sta is not None and sta.name == prev_sta.name:
-            if sta.dist is not None:
-                prev_sta.dist = sta.dist
-            else:
-                sta.dist = prev_sta.dist
-        prev_sta = sta
-    sort_by_dist = sorted(sort_by_name,
-                          key=lambda x: x.dist if x.dist is not None else 0.0)
-    return sort_by_dist
+    for sta in sorted_by_name:
+        prev_sta = _add_sta(sta, res, prev_sta)
+    sorted_by_dist = sorted(res,
+                            key=lambda x: x.dist if x.dist is not None else 0.0)
+    return sorted_by_dist
 
 
 def _filter_quakes(quakes: List[Quake], params: QueryParams) -> List[Quake]:
