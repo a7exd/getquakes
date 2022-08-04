@@ -49,8 +49,8 @@ class CatalogStorage(QuakesStorage):
             wb.save(self._file)
 
     def _add_values_in_sheet(self, quake) -> None:
-        origin_dt, lat, lon, _, avg_ml, avg_mpsp, depth = _format_common_attrs(
-            quake)
+        origin_dt, lat, lon, _, avg_ml, avg_mpsp, depth, _ =\
+            _format_common_attrs(quake)
         origin_d, origin_t = origin_dt.split()
         stations_name = ', '.join(quake.stations_name)
         row = (origin_d, origin_t, lat, lon, depth, quake.reg, avg_ml,
