@@ -17,7 +17,6 @@ class QueryParams(NamedTuple):
 
 
 def _get_sql_query(params: QueryParams) -> str:
-    sta = '' if params.sta.lower() == 'all' else params.sta
     from_dt = datetime.strptime(params.from_dt + '+0000', '%Y-%m-%d %H:%M:%S%z')
     from_dt_timestamp = from_dt.timestamp()
     to_dt = datetime.strptime(params.to_dt + '+0000', '%Y-%m-%d %H:%M:%S%z')
@@ -46,7 +45,6 @@ def _get_sql_query(params: QueryParams) -> str:
            f" AND" \
            f" (o.ORIGINTIME BETWEEN '{from_dt_timestamp}' AND " \
            f"                                       '{to_dt_timestamp}')" \
-           f" AND (a.STA LIKE '%{sta}%')" \
            f" ORDER BY a.ITIME"
 
 
@@ -89,7 +87,7 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     stations = sort_stations(stations)
     quakes.append(Quake(_id, origin_dt, lat, lon,
                         depth, reg, tuple(stations)))
-    return tuple(_filter_magnitude(quakes, params))
+    return tuple(_filter_quakes(quakes, params))
 
 
 def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
@@ -131,8 +129,13 @@ def sort_stations(stations: List[Sta]) -> List[Sta]:
     return sort_by_dist
 
 
-def _filter_magnitude(quakes: List[Quake], params: QueryParams) -> List[Quake]:
+def _filter_quakes(quakes: List[Quake], params: QueryParams) -> List[Quake]:
+    sta_set = set(params.sta.split())
     from_mag, to_mag = float(params.from_mag), float(params.to_mag)
-    return [quake for quake in quakes
-            if (from_mag <= quake.magnitude.ML <= to_mag)
-            or (from_mag <= quake.magnitude.MPSP <= to_mag)]
+    res = [quake for quake in quakes
+           if ((from_mag <= quake.magnitude.ML <= to_mag)
+               or (from_mag <= quake.magnitude.MPSP <= to_mag))]
+    if params.sta.lower() != 'all':
+        res = [quake for quake in res
+               if sta_set.issubset(quake.stations_name)]
+    return res
