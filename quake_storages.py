@@ -40,7 +40,7 @@ class CatalogStorage(QuakesStorage):
                 continue
             self._init_sheet(quake)
             self._add_values_in_sheet(quake)
-        self._set_alignment()
+        self._format_cells()
         self.wb.save(self._file)
 
     def _init_storage(self) -> None:
@@ -48,20 +48,30 @@ class CatalogStorage(QuakesStorage):
             wb = openpyxl.Workbook()
             wb.save(self._file)
 
-    def _add_values_in_sheet(self, quake) -> None:
-        origin_dt, lat, lon, _, avg_ml, avg_mpsp, depth, _ =\
-            _format_common_attrs(quake)
+    def _add_values_in_sheet(self, quake: Quake) -> None:
+        origin_dt = _format_common_attrs(quake)[0]
         origin_d, origin_t = origin_dt.split()
+        lat = quake.lat if quake.lat else '-'
+        lon = quake.lon if quake.lon else '-'
+        mag = quake.magnitude
+        avg_ml = mag.ML if mag.ML != 0.0 else '-'
+        avg_mpsp = mag.MPSP if mag.MPSP != 0.0 else '-'
+        depth = quake.depth if quake.depth else '-'
         stations_name = ', '.join(quake.stations_name)
-        row = (origin_d, origin_t, lat, lon, depth, quake.reg, avg_ml,
-               avg_mpsp, stations_name)
+        row = (origin_d, origin_t, lat, lon, depth,
+               quake.reg, avg_ml, avg_mpsp, stations_name)
         self.sheet.append(row)
 
-    def _set_alignment(self) -> None:
+    def _format_cells(self) -> None:
         for sheet in self.wb.sheetnames:
             rows_of_cells = self.wb[sheet][self.wb[sheet].dimensions]
             for row in rows_of_cells:
                 for cell in row:
+                    if cell.column in (3, 4, 5):
+                        # digital format for lat, lon, depth
+                        cell.number_format = '0.00'
+                    elif cell.column in (7, 8):
+                        cell.number_format = '0.0'
                     cell.alignment = Alignment(horizontal='center',
                                                vertical='center')
 
