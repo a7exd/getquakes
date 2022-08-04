@@ -18,8 +18,10 @@ class QueryParams(NamedTuple):
 
 def _get_sql_query(params: QueryParams) -> str:
     sta = '' if params.sta.lower() == 'all' else params.sta
-    from_dt = datetime.strptime(params.from_dt, '%Y-%m-%d %H:%M:%S').timestamp()
-    to_dt = datetime.strptime(params.to_dt, '%Y-%m-%d %H:%M:%S').timestamp()
+    from_dt = datetime.strptime(params.from_dt + '+0000', '%Y-%m-%d %H:%M:%S%z')
+    from_dt_timestamp = from_dt.timestamp()
+    to_dt = datetime.strptime(params.to_dt + '+0000', '%Y-%m-%d %H:%M:%S%z')
+    to_dt_timestamp = to_dt.timestamp()
     key_words = params.comment.split()
     key_words_count = len(key_words)
     if key_words_count > 1:
@@ -42,8 +44,8 @@ def _get_sql_query(params: QueryParams) -> str:
            f"WHERE" \
            f" (o.COMMENTS LIKE '%{comment_query}%')" \
            f" AND" \
-           f" (o.ORIGINTIME BETWEEN '{from_dt}' AND " \
-           f"                                       '{to_dt}')" \
+           f" (o.ORIGINTIME BETWEEN '{from_dt_timestamp}' AND " \
+           f"                                       '{to_dt_timestamp}')" \
            f" AND (a.STA LIKE '%{sta}%')" \
            f" ORDER BY a.ITIME"
 
@@ -72,7 +74,7 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     for quake_record in quake_records:
         if quake_record[0] != _id:
             if len(stations) != 0:
-                stations = sorted(stations, key=sort_stations)
+                stations = sort_stations(stations)
                 quake = Quake(_id, origin_dt, lat,
                               lon, depth, reg, tuple(stations))
                 quakes.append(quake)
@@ -84,7 +86,7 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
         sta_dt = datetime.utcfromtimestamp(quake_record[6])
         sta = Sta(sta_dt, *quake_record[7:])
         prev_sta = _add_sta(sta, stations, prev_sta)
-    stations = sorted(stations, key=sort_stations)
+    stations = sort_stations(stations)
     quakes.append(Quake(_id, origin_dt, lat, lon,
                         depth, reg, tuple(stations)))
     return tuple(_filter_magnitude(quakes, params))
@@ -93,9 +95,6 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
 def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
     if sta.name in config.STA_RENAME:
         sta.name += 'R'
-    if prev_sta is not None and sta.name == prev_sta.name \
-            and sta.dist is not None:
-        prev_sta.dist = sta.dist
     if prev_sta is None or (sta.phase_dt != prev_sta.phase_dt) \
             or (sta.name != prev_sta.name):
         stations.append(sta)
@@ -117,8 +116,19 @@ def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None):
     return out_sta
 
 
-def sort_stations(sta: Sta) -> float:
-    return sta.dist if sta.dist else 0.0
+def sort_stations(stations: List[Sta]) -> List[Sta]:
+    sort_by_name = sorted(stations, key=lambda x: x.name)
+    prev_sta: Sta | None = None
+    for sta in sort_by_name:
+        if prev_sta is not None and sta.name == prev_sta.name:
+            if sta.dist is not None:
+                prev_sta.dist = sta.dist
+            else:
+                sta.dist = prev_sta.dist
+        prev_sta = sta
+    sort_by_dist = sorted(sort_by_name,
+                          key=lambda x: x.dist if x.dist is not None else 0.0)
+    return sort_by_dist
 
 
 def _filter_magnitude(quakes: List[Quake], params: QueryParams) -> List[Quake]:
