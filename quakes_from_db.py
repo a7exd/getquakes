@@ -43,9 +43,9 @@ def _get_sql_query(params: QueryParams) -> str:
            f"WHERE" \
            f" (o.COMMENTS LIKE '%{comment_query}%')" \
            f" AND" \
-           f" (o.ORIGINTIME BETWEEN '{from_dt_timestamp}' AND " \
+           f" (a.ITIME BETWEEN '{from_dt_timestamp}' AND " \
            f"                                       '{to_dt_timestamp}')" \
-           f" ORDER BY o.ORIGINTIME"
+           f" ORDER BY o.EVENTID"
 
 
 def get_data(params: QueryParams) -> List[tuple]:
@@ -68,7 +68,6 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
     _id, origin_dtime, lat, lon, depth, reg = \
         '', 0.0, 0.0, 0.0, 0.0, ''
     quake_records = get_data(params)
-    prev_sta = None
     for quake_record in quake_records:
         if quake_record[0] != _id:
             if len(stations) != 0:
@@ -77,9 +76,9 @@ def get_quakes(params: QueryParams) -> Tuple[Quake, ...]:
                               lon, depth, reg, tuple(stations))
                 quakes.append(quake)
                 stations.clear()
-                prev_sta = None
             _id, origin_dtime, lat, lon, depth, reg = quake_record[:6]
-            origin_dt = datetime.utcfromtimestamp(origin_dtime)
+            origin_dt = datetime.utcfromtimestamp(origin_dtime) \
+                if origin_dtime is not None else datetime.min
 
         sta_dt = datetime.utcfromtimestamp(quake_record[6])
         sta = Sta(sta_dt, *quake_record[7:])
@@ -120,7 +119,7 @@ def _add_sta(sta: Sta, stations: List[Sta], prev_sta: Sta | None) -> Sta:
 def _filter_stations(stations: List[Sta]) -> List[Sta]:
     sorted_by_time = sorted(stations, key=lambda x: x.phase_dt)
     sorted_by_name = sorted(sorted_by_time, key=lambda x: x.name)
-    res = []
+    res: List[Sta] = []
     prev_sta: Sta | None = None
     for sta in sorted_by_name:
         prev_sta = _add_sta(sta, res, prev_sta)
@@ -138,4 +137,4 @@ def _filter_quakes(quakes: List[Quake], params: QueryParams) -> List[Quake]:
     if params.sta.lower() != 'all':
         res = [quake for quake in res
                if sta_set.issubset(quake.stations_name)]
-    return res
+    return sorted(res, key=lambda x: x.origin_dt)

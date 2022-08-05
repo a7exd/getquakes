@@ -220,7 +220,8 @@ class ArcGisStorage(QuakesStorage):
 
 def _format_common_attrs(quake: Quake,
                          date_fmt='%d.%m.%Y %H:%M:%S.%f') -> Tuple[str, ...]:
-    origin_dt = datetime.strftime(quake.origin_dt, date_fmt)[:-3]
+    origin_dt = datetime.strftime(quake.origin_dt, date_fmt)[:-3] \
+        if quake.origin_dt != datetime.min else '-'
     lat = f'{quake.lat:.2f}' if quake.lat else '-'
     lon = f'{quake.lon:.2f}' if quake.lon else '-'
     mag = quake.magnitude
