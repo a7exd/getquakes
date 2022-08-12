@@ -140,4 +140,4 @@ def _filter_quakes(quakes: List[Quake], params: QueryParams) -> List[Quake]:
     if params.sta.lower() != 'all':
         res = [quake for quake in res
                if sta_set.issubset(quake.stations_name)]
-    return sorted(res, key=lambda x: x.origin_dt)
+    return sorted(res, key=lambda x: x.stations[0].phase_dt)
