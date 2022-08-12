@@ -123,7 +123,7 @@ class BulletinStorage(QuakesStorage):
             _format_to_str(config.STATION_HEADER_DESCRIBE,
                            config.AMNT_COLUMN_SYMBOLS['sta_hdr'])
         sta_strings = self._get_stations_string(quake)
-        return (quake.id, quake_hdr_describe, quake_hdr,
+        return ('#' + quake.id, quake_hdr_describe, quake_hdr,
                 sta_hdr_describe, sta_strings)
 
     def _get_quake_hdr_describe(self) -> str:
