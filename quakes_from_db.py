@@ -33,7 +33,7 @@ def _get_sql_query(params: QueryParams) -> str:
            f" o.EVENTID, o.ORIGINTIME, ROUND(o.LAT, 2), ROUND(o.LON, 2)," \
            f" o.`DEPTH`," \
            f" CONCAT(SUBSTR(o.COMMENTS, 1, INSTR(o.COMMENTS, '.') - 3),"\
-           f"        SUBSTR(o.COMMENTS, 20))," \
+           f"        SUBSTR(o.COMMENTS, INSTR(o.COMMENTS, ':') + 4))," \
            f" a.ITIME, a.STA, ROUND(a.DIST, 2)," \
            f" ROUND(a.AZIMUTH, 2), a.IPHASE, CONCAT(a.IM_EM, a.FM)," \
            f" ROUND(a.AMPL, 4), ROUND(a.PER, 2)," \
@@ -131,9 +131,12 @@ def _filter_stations(stations: List[Sta]) -> List[Sta]:
 def _filter_quakes(quakes: List[Quake], params: QueryParams) -> List[Quake]:
     sta_set = set(params.sta.split())
     from_mag, to_mag = float(params.from_mag), float(params.to_mag)
-    res = [quake for quake in quakes
-           if ((from_mag <= quake.magnitude.ML <= to_mag)
-               or (from_mag <= quake.magnitude.MPSP <= to_mag))]
+    res: List[Quake] = []
+    for quake in quakes:
+        mag_ml, mag_mpsp = quake.magnitude
+        mag = mag_ml if mag_ml != 0.0 else mag_mpsp
+        if from_mag <= mag <= to_mag:
+            res.append(quake)
     if params.sta.lower() != 'all':
         res = [quake for quake in res
                if sta_set.issubset(quake.stations_name)]
